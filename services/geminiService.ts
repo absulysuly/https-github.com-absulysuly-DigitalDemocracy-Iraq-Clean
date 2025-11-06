@@ -1,5 +1,4 @@
-
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { Source } from "../types";
 
 const API_KEY = process.env.API_KEY;
@@ -61,5 +60,50 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
   } catch (error) {
     console.error("Error generating content with Gemini:", error);
     throw new Error("Failed to generate content from Gemini API.");
+  }
+};
+
+export const generateCreatorSpotlight = async (): Promise<{ quote: string; creatorHandle: string; }> => {
+  const prompt = "Generate a short, inspirational quote about creativity, community, or technology. Also provide a fictional creator's social media handle (e.g., @digitaldreamer).";
+  
+  if (!API_KEY) {
+    console.log("Using mock spotlight response due to missing API key.");
+    return new Promise(resolve => setTimeout(() => {
+        resolve({
+          quote: "Creativity is the currency of the future. Invest in your ideas.",
+          creatorHandle: "@mock_visionary"
+        });
+    }, 800));
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            quote: { type: Type.STRING, description: "The inspirational quote." },
+            creatorHandle: { type: Type.STRING, description: "The fictional creator's handle." }
+          },
+          required: ["quote", "creatorHandle"]
+        }
+      }
+    });
+
+    const jsonText = response.text.trim();
+    const data = JSON.parse(jsonText);
+    
+    if (data.quote && data.creatorHandle) {
+      return data;
+    } else {
+      throw new Error("Received invalid JSON structure from Gemini API.");
+    }
+
+  } catch (error) {
+    console.error("Error generating creator spotlight with Gemini:", error);
+    throw new Error("Failed to generate creator spotlight from Gemini API.");
   }
 };
