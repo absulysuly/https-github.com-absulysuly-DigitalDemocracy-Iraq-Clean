@@ -12,6 +12,11 @@ export interface Comment {
   timestamp: string;
 }
 
+export interface Source {
+  title: string;
+  uri: string;
+}
+
 export interface Post {
   id: string;
   author: User;
@@ -21,6 +26,7 @@ export interface Post {
   likes: number;
   comments: Comment[];
   shares: number;
+  sources?: Source[];
 }
 
 export interface Candidate {

@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { Post, User, Candidate, Comment } from './types';
+import { Post, User, Candidate, Comment, Source } from './types';
 import Header from './components/Header';
 import ComposePost from './components/ComposePost';
 import Feed from './components/Feed';
@@ -78,16 +78,16 @@ const App: React.FC = () => {
 
   const [posts, setPosts] = useState<Post[]>(initialPosts);
 
-  const handleCreatePost = useCallback((postText: string, imageUrl?: string) => {
+  const handleCreatePost = useCallback((postText: string, sources?: Source[]) => {
     const newPost: Post = {
       id: `p${Date.now()}`,
       author: mockUser,
       text: postText,
-      imageUrl,
       timestamp: new Date().toISOString(),
       likes: 0,
       comments: [],
       shares: 0,
+      sources,
     };
     setPosts(prevPosts => [newPost, ...prevPosts]);
   }, [mockUser]);

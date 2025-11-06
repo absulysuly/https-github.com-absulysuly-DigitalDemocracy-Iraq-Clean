@@ -4,6 +4,7 @@ import { Post, User } from '../types';
 import { HeartIcon, CommentIcon, ShareIcon, HeartIconSolid } from './IconComponents';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
+import PostSources from './PostSources';
 
 interface PostCardProps {
   post: Post;
@@ -56,6 +57,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) 
           </div>
         </div>
         <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">{post.text}</p>
+        {post.sources && post.sources.length > 0 && <PostSources sources={post.sources} />}
       </div>
       {post.imageUrl && (
         <img src={post.imageUrl} alt="Post content" className="w-full h-auto max-h-96 object-cover" />
