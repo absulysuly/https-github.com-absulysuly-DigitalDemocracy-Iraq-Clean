@@ -1,0 +1,33 @@
+
+export interface User {
+  id: string;
+  name: string;
+  avatarUrl: string;
+}
+
+export interface Comment {
+  id: string;
+  author: User;
+  text: string;
+  timestamp: string;
+}
+
+export interface Post {
+  id: string;
+  author: User;
+  text: string;
+  imageUrl?: string;
+  timestamp: string;
+  likes: number;
+  comments: Comment[];
+  shares: number;
+}
+
+export interface Candidate {
+  id: string;
+  name: string;
+  party: string;
+  avatarUrl: string;
+  supporters: number;
+  postCount: number;
+}

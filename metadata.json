@@ -1,0 +1,5 @@
+{
+  "name": "Digital Democracy Platform",
+  "description": "A social election platform that combines civic engagement with social media features. Users can follow candidates, view AI-generated posts, and interact with content through likes, comments, and shares.",
+  "requestFramePermissions": []
+}
