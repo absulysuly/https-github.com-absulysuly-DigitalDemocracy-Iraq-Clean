@@ -223,24 +223,40 @@ export const generateCampaignWithThinking = async (prompt: string): Promise<AICa
         }, 2000));
     }
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-pro",
-            contents: `Analyze the following user request and generate a strategic content plan for a social media post on the 'Digital Democracy' platform. The plan should be in a valid JSON object format. User request: "${prompt}"`,
-            config: {
-                systemInstruction: "You are a world-class campaign strategist. Your goal is to generate a complete, actionable social media content plan based on user requests. The output must be a single JSON object with the keys 'postText', 'hashtags' (an array of strings), and 'visuals' (an array of objects, each with 'description' and 'type' which can be 'image' or 'video').",
-                responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 32768 },
-            },
-        });
+    const MAX_RETRIES = 3;
+    const INITIAL_DELAY_MS = 2000;
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-pro",
+                contents: `Analyze the following user request and generate a strategic content plan for a social media post on the 'Digital Democracy' platform. The plan should be in a valid JSON object format. User request: "${prompt}"`,
+                config: {
+                    systemInstruction: "You are a world-class campaign strategist. Your goal is to generate a complete, actionable social media content plan based on user requests. The output must be a single JSON object with the keys 'postText', 'hashtags' (an array of strings), and 'visuals' (an array of objects, each with 'description' and 'type' which can be 'image' or 'video').",
+                    responseMimeType: "application/json",
+                    thinkingConfig: { thinkingBudget: 32768 },
+                },
+            });
 
-    } catch (error) {
-        console.error("Error generating campaign with Thinking Mode:", error);
-        throw new Error("Failed to generate campaign plan from Gemini API.");
+            const jsonText = response.text.trim();
+            return JSON.parse(jsonText); // Success!
+        } catch (error: any) {
+            console.error(`Error generating campaign (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+            const errorString = JSON.stringify(error);
+            const isRetryable = errorString.includes("503") || errorString.includes("UNAVAILABLE") || errorString.includes("overloaded");
+
+            if (isRetryable && attempt < MAX_RETRIES) {
+                const delay = INITIAL_DELAY_MS * Math.pow(2, attempt - 1); // Exponential backoff
+                console.log(`Model is overloaded. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                // On last attempt or if it's not a retryable error, throw a user-friendly error.
+                throw new Error("Failed to generate campaign plan. The model may be temporarily overloaded. Please try again in a few moments.");
+            }
+        }
     }
+     // This part should be unreachable if MAX_RETRIES > 0, but is a fallback.
+    throw new Error("Failed to generate campaign plan after multiple retries.");
 };
 
 export const generatePremiumImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16'): Promise<string> => {
@@ -352,12 +368,20 @@ export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16'
         const videoBlob = await response.blob();
         return URL.createObjectURL(videoBlob);
         
-    } catch(error) {
+    } catch(error: any) {
         console.error("Error generating video with Veo:", error);
+        // Error from Gemini API is often a complex object. Stringifying it helps reliably search for status codes.
+        const errorString = JSON.stringify(error);
+        
+        if (errorString.includes("RESOURCE_EXHAUSTED") || errorString.includes("429")) {
+            throw new Error("You have exceeded your video generation quota. Please check your plan and billing details. For more information, visit ai.google.dev/gemini-api/docs/rate-limits.");
+        }
+        
         // Handle the specific API key error for Veo
         if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
              throw new Error("API key is not valid for Veo. Please select a valid key.");
         }
-        throw new Error("Failed to generate video from Gemini API.");
+        
+        throw new Error("Failed to generate video from Gemini API. An unexpected error occurred.");
     }
 };
