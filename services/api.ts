@@ -21,7 +21,7 @@ const user2 = createMockUser(2, 'Ben Carter', 1025);
 const user3 = createMockUser(3, 'Chen Wei', 1027);
 const user4 = createMockUser(4, 'Diana Prince', 1028);
 
-// Mock Posts
+// Mock Posts - Expanded for pagination
 const mockPosts: Post[] = [
   {
     id: 'p1',
@@ -61,7 +61,55 @@ const mockPosts: Post[] = [
     comments: [],
     shares: 21,
   },
+  {
+    id: 'p4',
+    author: user1,
+    text: "Voter registration deadlines are approaching! Make sure your voice is heard. Check your status and register online today. Every vote counts. #VoteReady #CivicDuty",
+    imageUrl: 'https://picsum.photos/seed/vote/800/400',
+    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    likes: 543,
+    comments: [],
+    shares: 150,
+  },
+  {
+    id: 'p5',
+    author: user2,
+    text: "Reviewing the latest budget proposal for education. Investing in our schools is investing in our future. Let's prioritize our students. 📚",
+    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    likes: 301,
+    comments: [],
+    shares: 65,
+  },
+    {
+    id: 'p6',
+    author: user3,
+    text: "Public safety is a top priority. We're working with community leaders to implement new neighborhood watch programs. Together, we can build a safer city for everyone.",
+    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    likes: 189,
+    comments: [],
+    shares: 40,
+  },
+  {
+    id: 'p7',
+    author: user4,
+    text: "The new infrastructure bill will create thousands of jobs and modernize our roads and bridges. This is a huge win for our economy and our daily commutes!",
+    imageUrl: 'https://picsum.photos/seed/bridge/800/400',
+    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    likes: 721,
+    comments: [],
+    shares: 210,
+  },
+   {
+    id: 'p8',
+    author: user1,
+    text: "Let's talk about digital literacy for seniors. We're launching free workshops at local libraries to help everyone stay connected in this digital age. #DigitalInclusion",
+    timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    likes: 215,
+    comments: [],
+    shares: 55,
+  },
 ];
+
 
 const mockCandidates: Candidate[] = [
   { id: 'cand1', name: 'Elena Vance', party: 'Future Forward Party', avatarUrl: 'https://picsum.photos/id/237/100/100', supporters: 125321, postCount: 189, governorate: 'Capital Governorate', gender: 'Female' },
@@ -88,10 +136,17 @@ const mockTrendingTopics: TrendingTopic[] = [
   { category: 'Election 2024', topic: '#DebateNight', postCount: 25000 },
 ];
 
-export const getPosts = async (): Promise<Post[]> => {
+export const getPosts = async (page: number = 1, limit: number = 5): Promise<{ posts: Post[], hasMore: boolean }> => {
   // Simulate network delay
   await new Promise(res => setTimeout(res, 500));
-  return mockPosts;
+  
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  
+  const paginatedPosts = mockPosts.slice(startIndex, endIndex);
+  const hasMore = endIndex < mockPosts.length;
+  
+  return { posts: paginatedPosts, hasMore };
 };
 
 export const getCandidates = async (): Promise<Candidate[]> => {

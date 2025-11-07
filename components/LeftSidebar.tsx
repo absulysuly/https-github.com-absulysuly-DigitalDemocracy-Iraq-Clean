@@ -1,7 +1,8 @@
 import React from 'react';
 import { Candidate, User } from '../types';
-import { HomeIcon, UsersIcon, IdentificationIcon, SettingsIcon } from './IconComponents';
+import { HomeIcon, UsersIcon, IdentificationIcon, SettingsIcon, ChartBarIcon } from './IconComponents';
 import CandidateCard from './CandidateCard';
+import { useAppContext } from '../contexts/AppContext';
 
 interface LeftSidebarProps {
   user: User;
@@ -15,7 +16,9 @@ const NavLink: React.FC<{ icon: React.ReactNode, label: string, isActive?: boole
   </a>
 );
 
-const LeftSidebar: React.FC<LeftSidebarProps> = ({ user, candidates }) => {
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ candidates }) => {
+  const { currentProject } = useAppContext();
+
   return (
     <aside className="col-span-12 lg:col-span-3 hidden lg:block">
       <div className="sticky top-20 space-y-6">
@@ -23,6 +26,15 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ user, candidates }) => {
           <NavLink icon={<HomeIcon className="w-7 h-7" />} label="Home" isActive />
           <NavLink icon={<UsersIcon className="w-7 h-7" />} label="Community" />
           <NavLink icon={<IdentificationIcon className="w-7 h-7" />} label="Candidates" />
+          
+          {/* Conditional Link for Live Election Hub */}
+          {currentProject?.id === 'live-election-hub' && (
+              <a href="#" className="flex items-center space-x-4 px-4 py-3 rounded-full transition-colors duration-200 bg-teal-600/20 border border-teal-500/50 text-teal-300 font-bold animate-pulse hover:animate-none hover:bg-teal-500/30">
+                  <ChartBarIcon className="w-7 h-7"/>
+                  <span className="text-lg">Live Election Hub</span>
+              </a>
+          )}
+
           <NavLink icon={<SettingsIcon className="w-7 h-7" />} label="Settings" />
         </nav>
 

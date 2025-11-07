@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 
 export interface User {
   id: string;
@@ -28,6 +29,7 @@ export interface Post {
   comments: Comment[];
   shares: number;
   sources?: Source[];
+  postType?: 'standard' | 'story' | 'vote_declaration';
 }
 
 export interface Candidate {
@@ -63,4 +65,14 @@ export interface GeneratedAsset {
     type: 'image' | 'video';
     url: string; // base64 data URI for image, downloadable URL for video
     prompt: string;
+}
+
+// Type for the new Project Hub feature
+export interface Project {
+    id: string;
+    name: string;
+    description: string;
+    icon: ReactNode;
+    systemInstruction: string;
+    samplePrompts: string[];
 }

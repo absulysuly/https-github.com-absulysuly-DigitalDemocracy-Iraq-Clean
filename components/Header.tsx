@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogoIcon } from './IconComponents';
 import { User } from '../types';
+import ProjectSelector from './ProjectSelector';
 
 interface HeaderProps {
   user: User;
@@ -14,10 +15,12 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
             <LogoIcon className="w-8 h-8 text-teal-400" />
-            <h1 className="text-xl font-bold text-white hidden sm:block">Digital Democracy</h1>
+            <div className="hidden sm:block">
+              <ProjectSelector />
+            </div>
           </div>
           
-          <div className="flex-1 max-w-lg mx-4">
+          <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md mx-4">
             <input 
               type="text" 
               placeholder="Search platform..."

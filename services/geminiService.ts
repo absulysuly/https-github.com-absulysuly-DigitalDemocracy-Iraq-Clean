@@ -13,7 +13,61 @@ const getAiClient = () => {
     return new GoogleGenAI({ apiKey: key });
 };
 
-const systemInstruction = `You are an AI assistant for a civic engagement platform called 'Digital Democracy'. Your tone must be neutral, informative, and encouraging of constructive dialogue. Avoid partisan language, speculation, or inflammatory statements. When generating a post based on a topic, rely on the provided search results to ensure accuracy.`;
+const defaultSystemInstruction = `You are an AI assistant for a civic engagement platform called 'Digital Democracy'. Your tone must be neutral, informative, and encouraging of constructive dialogue. Avoid partisan language, speculation, or inflammatory statements. When generating a post based on a topic, rely on the provided search results to ensure accuracy.`;
+
+
+// --- NEW LIVE NEWS FUNCTION ---
+export const generatePostFromUrl = async (url: string, topic: string): Promise<{ text: string; sources: Source[] }> => {
+  const ai = getAiClient();
+  const prompt = `Based on the information found at the URL "${url}", write a neutral and informative social media post for the 'Digital Democracy' platform about "${topic}". The post should be concise, factual, and include relevant hashtags.`;
+  
+  if (!ai) {
+    console.log("Using mock response for URL generation due to missing API key.");
+    return new Promise(resolve => setTimeout(() => {
+        resolve({
+          text: `This is a mock AI-generated post summarizing the topic "${topic}" from the provided URL. Gemini would normally analyze the page and generate a factual summary. #MockNews #AI`,
+          sources: [ { title: `Source: ${topic}`, uri: url } ]
+        });
+    }, 1500));
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction: `You are an AI journalist's assistant for 'Digital Democracy'. Your task is to analyze the content of a provided URL, accurately summarize the key information related to the user's topic, and draft a neutral, factual social media post. Always cite the provided URL as the source.`,
+        tools: [{googleSearch: {}}],
+      }
+    });
+
+    const text = response.text;
+    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+    
+    let sources: Source[] = [];
+     if (groundingMetadata?.groundingChunks) {
+      sources = groundingMetadata.groundingChunks
+        .filter(chunk => chunk.web)
+        .map(chunk => ({
+          title: chunk.web.title || `Source for: ${topic}`,
+          uri: chunk.web.uri,
+        }));
+    }
+    // Ensure the original URL is always listed as a source
+    if (!sources.some(s => s.uri === url)) {
+        sources.unshift({ title: `Primary Source: ${topic}`, uri: url });
+    }
+
+    if (text) {
+      return { text: text.trim(), sources };
+    } else {
+      throw new Error("Received an empty response from Gemini API for URL summarization.");
+    }
+  } catch (error) {
+    console.error("Error generating content from URL with Gemini:", error);
+    throw new Error("Failed to generate content from the provided URL.");
+  }
+};
 
 
 // --- EXISTING FUNCTIONS (Refactored to use getAiClient) ---
@@ -43,7 +97,7 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
-        systemInstruction,
+        systemInstruction: defaultSystemInstruction,
         tools: [{googleSearch: {}}],
       }
     });
@@ -207,7 +261,7 @@ export const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
 
 // --- NEW AI CREATOR STUDIO FUNCTIONS ---
 
-export const generateCampaignWithThinking = async (prompt: string): Promise<AICampaignPlan> => {
+export const generateCampaignWithThinking = async (prompt: string, systemInstructionOverride?: string): Promise<AICampaignPlan> => {
     const ai = getAiClient();
     if (!ai) {
         console.log("Using mock campaign response due to missing API key.");
@@ -226,20 +280,63 @@ export const generateCampaignWithThinking = async (prompt: string): Promise<AICa
     const MAX_RETRIES = 3;
     const INITIAL_DELAY_MS = 2000;
 
+    const finalSystemInstruction = systemInstructionOverride || defaultSystemInstruction;
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-pro",
-                contents: `Analyze the following user request and generate a strategic content plan for a social media post on the 'Digital Democracy' platform. The plan should be in a valid JSON object format. User request: "${prompt}"`,
+                contents: `Analyze the following user request and generate a strategic content plan for a social media post on the 'Digital Democracy' platform. The plan must be in a valid JSON object format that adheres to the provided schema. User request: "${prompt}"`,
                 config: {
-                    systemInstruction: "You are a world-class campaign strategist. Your goal is to generate a complete, actionable social media content plan based on user requests. The output must be a single JSON object with the keys 'postText', 'hashtags' (an array of strings), and 'visuals' (an array of objects, each with 'description' and 'type' which can be 'image' or 'video').",
+                    systemInstruction: finalSystemInstruction,
                     responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            postText: {
+                                type: Type.STRING,
+                                description: "The main text content for the social media post."
+                            },
+                            hashtags: {
+                                type: Type.ARRAY,
+                                items: { type: Type.STRING },
+                                description: "An array of relevant hashtags, without the '#' symbol."
+                            },
+                            visuals: {
+                                type: Type.ARRAY,
+                                items: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        description: {
+                                            type: Type.STRING,
+                                            description: "A detailed, descriptive prompt for generating a visual (image or video)."
+                                        },
+                                        type: {
+                                            type: Type.STRING,
+                                            description: "The type of visual to generate, must be 'image' or 'video'."
+                                        }
+                                    },
+                                    required: ['description', 'type']
+                                },
+                                description: "An array of suggestions for visuals to accompany the post."
+                            }
+                        },
+                        required: ['postText', 'hashtags', 'visuals']
+                    },
                     thinkingConfig: { thinkingBudget: 32768 },
                 },
             });
 
             const jsonText = response.text.trim();
-            return JSON.parse(jsonText); // Success!
+            const data = JSON.parse(jsonText);
+            
+            // Return a well-formed object with defaults to prevent downstream errors.
+            return {
+                postText: data.postText || '',
+                hashtags: data.hashtags || [],
+                visuals: data.visuals || [],
+            };
+
         } catch (error: any) {
             console.error(`Error generating campaign (Attempt ${attempt}/${MAX_RETRIES}):`, error);
             const errorString = JSON.stringify(error);

@@ -1,19 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AICampaignPlan, GeneratedAsset, VisualSuggestion } from '../types';
-import { generateCampaignWithThinking, generatePremiumImage, editImage, generateVideo } from '../services/geminiService';
-import { SparklesIcon, CloseIcon, BrainCircuitIcon, ImageIcon, VideoIcon, WandIcon } from './IconComponents';
+import { AICampaignPlan, GeneratedAsset, VisualSuggestion, Source } from '../types';
+import { generateCampaignWithThinking, generatePremiumImage, editImage, generateVideo, generatePostFromUrl } from '../services/geminiService';
+import { SparklesIcon, CloseIcon, BrainCircuitIcon, ImageIcon, VideoIcon, WandIcon, LinkIcon } from './IconComponents';
+import { useAppContext } from '../contexts/AppContext';
 
 interface AICreatorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (content: { text: string, imageUrl?: string, videoUrl?: string }) => void;
+  onComplete: (content: { text: string, imageUrl?: string, videoUrl?: string, sources?: Source[] }) => void;
 }
 
-type Step = 'idea' | 'plan' | 'visuals' | 'edit'| 'error';
+type Step = 'idea' | 'plan' | 'visuals' | 'edit'| 'error' | 'url_input' | 'url_review';
 
 const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComplete }) => {
+  const { currentProject } = useAppContext();
   const [step, setStep] = useState<Step>('idea');
   const [prompt, setPrompt] = useState('');
+  
+  // State for Live News feature
+  const [url, setUrl] = useState('');
+  const [topic, setTopic] = useState('');
+  const [generatedPost, setGeneratedPost] = useState<{ text: string; imageUrl?: string, sources?: Source[] } | null>(null);
+
   const [campaignPlan, setCampaignPlan] = useState<AICampaignPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -38,17 +46,29 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
   useEffect(() => {
     if (isOpen) {
         // Reset state when modal opens
-        setStep('idea');
-        setPrompt('');
         setCampaignPlan(null);
         setIsLoading(false);
         setErrorMessage('');
         setGeneratedAssets([]);
         setEditingAsset(null);
         setEditPrompt('');
+        setGeneratedPost(null);
+        setUrl('');
+        
+        // Set initial step and prompt based on the project
+        if (currentProject?.id === 'live-news-update') {
+            setStep('url_input');
+            setTopic(currentProject.samplePrompts[0] || '');
+        } else {
+            setStep('idea');
+            if (currentProject && currentProject.samplePrompts.length > 0 && !prompt) {
+                setPrompt(currentProject.samplePrompts[0]);
+            }
+        }
+        
         ensureApiKey(); // Check for key on open
     }
-  }, [isOpen, ensureApiKey]);
+  }, [isOpen, ensureApiKey, currentProject, prompt]);
 
   const handleGeneratePlan = async () => {
     if (!prompt.trim()) return;
@@ -56,7 +76,7 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
     setLoadingMessage('Thinking...');
     setErrorMessage('');
     try {
-      const plan = await generateCampaignWithThinking(prompt);
+      const plan = await generateCampaignWithThinking(prompt, currentProject?.systemInstruction);
       setCampaignPlan(plan);
       setStep('plan');
     } catch (error) {
@@ -65,6 +85,32 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
       setStep('error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateFromUrl = async () => {
+    if (!url.trim() || !topic.trim()) return;
+    setIsLoading(true);
+    setLoadingMessage('Analyzing source and drafting post...');
+    setErrorMessage('');
+    try {
+        // 1. Generate text and sources from the URL
+        const { text, sources } = await generatePostFromUrl(url, topic);
+
+        // 2. Generate a relevant image from the generated text
+        setLoadingMessage('Creating a custom visual...');
+        const imagePrompt = `Create a high-quality, realistic image that visually represents the following social media post: "${text.slice(0, 250)}..."`;
+        const imageUrl = await generatePremiumImage(imagePrompt, '16:9');
+        
+        setGeneratedPost({ text, imageUrl, sources });
+        setStep('url_review');
+
+    } catch (error) {
+        console.error(error);
+        setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred.");
+        setStep('error');
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -116,12 +162,24 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
 
   const handleSelectAsset = (asset: GeneratedAsset) => {
     if (!campaignPlan) return;
+
+    const hashtagsText = (campaignPlan.hashtags && Array.isArray(campaignPlan.hashtags) && campaignPlan.hashtags.length > 0)
+        ? `\n\n${campaignPlan.hashtags.join(' ')}`
+        : '';
+        
+    const postContent = `${campaignPlan.postText}${hashtagsText}`;
+
     onComplete({
-        text: `${campaignPlan.postText}\n\n${campaignPlan.hashtags.join(' ')}`,
+        text: postContent,
         imageUrl: asset.type === 'image' ? asset.url : undefined,
         videoUrl: asset.type === 'video' ? asset.url : undefined,
     });
   };
+  
+  const handleCompleteFromUrl = () => {
+      if (!generatedPost) return;
+      onComplete(generatedPost);
+  }
 
   if (!isOpen) return null;
 
@@ -146,7 +204,7 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
                         Select New API Key
                     </button>
                 )}
-                <button onClick={() => setStep('idea')} className="mt-4 text-sm text-teal-400 hover:underline">
+                 <button onClick={() => setStep(currentProject?.id === 'live-news-update' ? 'url_input' : 'idea')} className="mt-4 text-sm text-teal-400 hover:underline">
                     Start Over
                 </button>
             </div>
@@ -184,21 +242,96 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
     }
 
     switch (step) {
+      case 'url_input':
+        return (
+          <div className="p-8 flex flex-col h-full">
+            <div className="text-center">
+              <div className="inline-flex items-center space-x-3">
+                {currentProject?.icon}
+                <h3 className="text-3xl font-bold text-white">AI Studio: {currentProject?.name}</h3>
+              </div>
+              <p className="text-gray-400 mt-2 max-w-xl mx-auto">{currentProject?.description}</p>
+            </div>
+            <div className="flex-grow flex flex-col items-center justify-center my-6 space-y-4">
+               <div>
+                  <label htmlFor="url-input" className="block text-sm font-medium text-gray-300 mb-2">Website URL</label>
+                  <input
+                    id="url-input"
+                    type="url"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    placeholder="https://election-commission-news.gov/updates"
+                    className="w-full max-w-2xl p-3 text-lg bg-slate-800 border-2 border-slate-600 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all"
+                  />
+               </div>
+               <div>
+                  <label htmlFor="topic-input" className="block text-sm font-medium text-gray-300 mb-2">Main Topic of the Article</label>
+                   <input
+                    id="topic-input"
+                    type="text"
+                    value={topic}
+                    onChange={e => setTopic(e.target.value)}
+                    placeholder="e.g., New voter registration numbers"
+                    className="w-full max-w-2xl p-3 text-lg bg-slate-800 border-2 border-slate-600 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all"
+                  />
+               </div>
+            </div>
+             <div className="text-center">
+              <button onClick={handleGenerateFromUrl} disabled={!url.trim() || !topic.trim()} className="px-8 py-3 bg-teal-600 text-white font-bold rounded-full hover:bg-teal-700 disabled:bg-slate-500 transition-colors text-lg">
+                Generate from Source
+              </button>
+            </div>
+          </div>
+        );
+       case 'url_review':
+        return (
+            <div className="p-8 h-full flex flex-col">
+                <h3 className="text-2xl font-bold text-white mb-4">Generated Post Preview</h3>
+                <div className="flex-grow bg-slate-800/50 p-4 rounded-lg overflow-y-auto">
+                    {generatedPost?.imageUrl && (
+                        <img src={generatedPost.imageUrl} alt="AI Generated Visual" className="w-full rounded-lg mb-4 max-h-72 object-cover" />
+                    )}
+                    <p className="whitespace-pre-wrap text-gray-200">{generatedPost?.text}</p>
+                    {/* You could also display sources here if needed */}
+                </div>
+                <div className="flex-shrink-0 text-center mt-6">
+                    <button onClick={handleCompleteFromUrl} className="px-8 py-3 bg-teal-600 text-white font-bold rounded-full hover:bg-teal-700 transition-colors text-lg">
+                        Use This Post
+                    </button>
+                </div>
+            </div>
+        );
       case 'idea':
         return (
           <div className="p-8 flex flex-col h-full">
             <div className="text-center">
-              <BrainCircuitIcon className="w-12 h-12 mx-auto text-teal-400"/>
-              <h3 className="text-3xl font-bold text-white mt-4">AI Creative Studio</h3>
-              <p className="text-gray-400 mt-2 max-w-xl mx-auto">Start with an idea, a goal, or a complex topic. The AI will act as your campaign strategist to build a post from the ground up.</p>
+              <div className="inline-flex items-center space-x-3">
+                {currentProject?.icon}
+                <h3 className="text-3xl font-bold text-white">AI Studio: {currentProject?.name}</h3>
+              </div>
+              <p className="text-gray-400 mt-2 max-w-xl mx-auto">{currentProject?.description}</p>
             </div>
-            <div className="flex-grow flex items-center justify-center">
+            <div className="flex-grow flex flex-col items-center justify-center my-6">
               <textarea
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 placeholder="e.g., 'Develop a campaign about improving public transit, focusing on environmental benefits and reduced traffic.'"
                 className="w-full max-w-2xl h-32 p-4 text-lg bg-slate-800 border-2 border-slate-600 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all"
               />
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-400 mb-2">Or try one of these ideas:</p>
+                <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+                    {currentProject?.samplePrompts.map((sample, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setPrompt(sample)}
+                            className="px-3 py-1.5 bg-slate-700/50 text-sm text-gray-300 rounded-full hover:bg-slate-600/50 transition-colors"
+                        >
+                            {sample}
+                        </button>
+                    ))}
+                </div>
+              </div>
             </div>
             <div className="text-center">
               <button onClick={handleGeneratePlan} disabled={!prompt.trim()} className="px-8 py-3 bg-teal-600 text-white font-bold rounded-full hover:bg-teal-700 disabled:bg-slate-500 transition-colors text-lg">
@@ -218,7 +351,7 @@ const AICreatorModal: React.FC<AICreatorModalProps> = ({ isOpen, onClose, onComp
                 <h4 className="font-bold text-teal-400 mb-2">Generated Text:</h4>
                 <p className="whitespace-pre-wrap text-gray-200">{campaignPlan?.postText}</p>
                 <h4 className="font-bold text-teal-400 mt-4 mb-2">Hashtags:</h4>
-                <p className="text-gray-300 italic">{campaignPlan?.hashtags.join(' ')}</p>
+                <p className="text-gray-300 italic">{campaignPlan?.hashtags?.join(' ') ?? 'No hashtags generated.'}</p>
               </div>
 
               {/* Right: Visuals */}
