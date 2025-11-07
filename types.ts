@@ -40,3 +40,9 @@ export interface Candidate {
   governorate?: string;
   gender?: 'Male' | 'Female' | 'Other';
 }
+
+export interface TrendingTopic {
+  category: string;
+  topic: string;
+  postCount: number;
+}

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Source } from "../types";
+import { Source, TrendingTopic } from "../types";
 
 const API_KEY = process.env.API_KEY;
 let ai: GoogleGenAI | null = null;
@@ -68,16 +68,16 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
   }
 };
 
-export const generateCreatorSpotlight = async (): Promise<{ quote: string; creatorHandle: string; }> => {
-  const prompt = "Generate a short, inspirational quote about creativity, community, or technology. Also provide a fictional creator's social media handle (e.g., @digitaldreamer).";
+export const generateCreatorSpotlight = async (): Promise<{ quote: string; author: string; }> => {
+  const prompt = `You are an AI for a civic engagement platform. Generate a short, powerful, and inspirational quote about one of the following topics: civic duty, community building, leadership, positive change, or the power of a single voice. The quote should be under 200 characters. Also, provide the name of a historical figure, philosopher, or an anonymous source (e.g., 'Ancient Proverb') to attribute the quote to.`;
   
   // If the 'ai' client failed to initialize, return mock data immediately.
   if (!ai) {
     console.log("Using mock spotlight response due to missing API key.");
     return new Promise(resolve => setTimeout(() => {
         resolve({
-          quote: "Creativity is the currency of the future. Invest in your ideas.",
-          creatorHandle: "@mock_visionary"
+          quote: "The future is built by the hands of those who show up.",
+          author: "A wise mock philosopher"
         });
     }, 800));
   }
@@ -92,9 +92,9 @@ export const generateCreatorSpotlight = async (): Promise<{ quote: string; creat
           type: Type.OBJECT,
           properties: {
             quote: { type: Type.STRING, description: "The inspirational quote." },
-            creatorHandle: { type: Type.STRING, description: "The fictional creator's handle." }
+            author: { type: Type.STRING, description: "The author or source of the quote." }
           },
-          required: ["quote", "creatorHandle"]
+          required: ["quote", "author"]
         }
       }
     });
@@ -102,7 +102,7 @@ export const generateCreatorSpotlight = async (): Promise<{ quote: string; creat
     const jsonText = response.text.trim();
     const data = JSON.parse(jsonText);
     
-    if (data.quote && data.creatorHandle) {
+    if (data.quote && data.author) {
       return data;
     } else {
       throw new Error("Received invalid JSON structure from Gemini API.");
@@ -111,5 +111,57 @@ export const generateCreatorSpotlight = async (): Promise<{ quote: string; creat
   } catch (error) {
     console.error("Error generating creator spotlight with Gemini:", error);
     throw new Error("Failed to generate creator spotlight from Gemini API.");
+  }
+};
+
+export const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
+  const prompt = `Generate a list of 5 current, realistic trending topics for a social media platform focused on civic engagement and politics. For each topic, provide a category (e.g., "National Politics", "Community", "Technology"), the topic title, and a fictional but realistic post count.`;
+
+  if (!ai) {
+    console.log("Using mock trending topics due to missing API key.");
+    // This is just a fallback for local dev without a key, the main fallback is in api.ts
+    return [];
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction: "You are an AI assistant for 'Digital Democracy'. You generate trending topics. Your tone must be neutral and informative. Avoid partisan language.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            topics: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  topic: { type: Type.STRING },
+                  postCount: { type: Type.NUMBER },
+                },
+                required: ["category", "topic", "postCount"],
+              },
+            },
+          },
+          required: ["topics"],
+        },
+      },
+    });
+
+    const jsonText = response.text.trim();
+    const data = JSON.parse(jsonText);
+
+    if (data.topics && Array.isArray(data.topics)) {
+      return data.topics;
+    } else {
+      throw new Error("Received invalid JSON structure for trending topics from Gemini API.");
+    }
+  } catch (error) {
+    console.error("Error generating trending topics with Gemini:", error);
+    // On error, the caller (api.ts) should handle fallback to mock data.
+    throw new Error("Failed to generate trending topics from Gemini API.");
   }
 };

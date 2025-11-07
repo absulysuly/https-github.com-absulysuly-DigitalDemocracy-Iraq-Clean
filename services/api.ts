@@ -1,4 +1,5 @@
-import { Post, User, Candidate, Comment } from '../types';
+import { Post, User, Candidate, Comment, TrendingTopic } from '../types';
+import { generateTrendingTopics } from './geminiService';
 
 // Mock data generation functions
 const createMockUser = (id: number, name: string, avatarId: number): User => ({
@@ -79,6 +80,14 @@ const mockFeaturedUsers: User[] = [
     createMockUser(16, 'Percy Jackson', 16),
 ];
 
+const mockTrendingTopics: TrendingTopic[] = [
+  { category: 'National Politics', topic: 'Healthcare Reform Bill', postCount: 18200 },
+  { category: 'Local Community', topic: 'New Downtown Park Project', postCount: 9800 },
+  { category: 'Technology', topic: 'Digital Voting Security', postCount: 12500 },
+  { category: 'Environment', topic: 'Clean Energy Initiatives', postCount: 7600 },
+  { category: 'Election 2024', topic: '#DebateNight', postCount: 25000 },
+];
+
 export const getPosts = async (): Promise<Post[]> => {
   // Simulate network delay
   await new Promise(res => setTimeout(res, 500));
@@ -93,6 +102,20 @@ export const getCandidates = async (): Promise<Candidate[]> => {
 export const getFeaturedUsers = async (): Promise<User[]> => {
     await new Promise(res => setTimeout(res, 200));
     return mockFeaturedUsers;
+};
+
+export const getTrendingTopics = async (): Promise<TrendingTopic[]> => {
+    try {
+        const topics = await generateTrendingTopics();
+        // If Gemini returns an empty array, or for any reason it fails and returns empty, use mock data.
+        if (topics && topics.length > 0) {
+            return topics;
+        }
+        return mockTrendingTopics;
+    } catch (error) {
+        console.warn("Failed to fetch trending topics from Gemini, using mock data.", error);
+        return mockTrendingTopics;
+    }
 };
 
 export const addPost = async (post: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>): Promise<Post> => {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { User, Post, Candidate } from '../types';
-import { getPosts, getCandidates, addPost as apiAddPost, getFeaturedUsers } from '../services/api';
+import { User, Post, Candidate, TrendingTopic } from '../types';
+import { getPosts, getCandidates, addPost as apiAddPost, getFeaturedUsers, getTrendingTopics } from '../services/api';
 
 interface AppContextType {
   isAuthenticated: boolean;
@@ -8,6 +8,7 @@ interface AppContextType {
   posts: Post[];
   candidates: Candidate[];
   featuredUsers: User[];
+  trendingTopics: TrendingTopic[];
   login: (user: User) => void;
   logout: () => void;
   addPost: (post: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>) => Promise<void>;
@@ -22,20 +23,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [posts, setPosts] = useState<Post[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [featuredUsers, setFeaturedUsers] = useState<User[]>([]);
+  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setIsLoading(true);
-        const [postsData, candidatesData, featuredUsersData] = await Promise.all([
+        const [postsData, candidatesData, featuredUsersData, trendingTopicsData] = await Promise.all([
             getPosts(),
             getCandidates(),
             getFeaturedUsers(),
+            getTrendingTopics(),
         ]);
         setPosts(postsData);
         setCandidates(candidatesData);
         setFeaturedUsers(featuredUsersData);
+        setTrendingTopics(trendingTopicsData);
       } catch (error) {
         console.error("Failed to fetch initial data", error);
       } finally {
@@ -72,6 +76,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     posts,
     candidates,
     featuredUsers,
+    trendingTopics,
     login,
     logout,
     addPost,

@@ -3,11 +3,10 @@ import { useAppContext } from '../contexts/AppContext';
 import Header from './Header';
 import LeftSidebar from './LeftSidebar';
 import Feed from './Feed';
-import CountdownTimer from './CountdownTimer';
-import CreatorSpotlight from './CreatorSpotlight';
+import RightSidebar from './RightSidebar';
 
 const MainLayout: React.FC = () => {
-  const { user, logout, candidates } = useAppContext();
+  const { user, logout, candidates, trendingTopics } = useAppContext();
 
   // This should not happen if MainLayout is rendered, but it's a good type guard.
   if (!user) {
@@ -25,16 +24,15 @@ const MainLayout: React.FC = () => {
         <div className="grid grid-cols-12 gap-8">
             <LeftSidebar user={user} candidates={candidates} />
 
-            <div className="col-span-12 lg:col-span-6 xl:col-span-6">
+            <div className="col-span-12 lg:col-span-6">
                 <Feed />
             </div>
             
-            <aside className="col-span-12 xl:col-span-3 hidden xl:block">
-                <div className="sticky top-20 space-y-6">
-                    <CountdownTimer targetDate={electionDate} />
-                    <CreatorSpotlight />
-                </div>
-            </aside>
+            <RightSidebar 
+                candidates={candidates}
+                topics={trendingTopics}
+                electionDate={electionDate}
+            />
         </div>
       </div>
     </>
