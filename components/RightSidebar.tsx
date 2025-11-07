@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Candidate, TrendingTopic } from '../types';
 import CountdownTimer from './CountdownTimer';
 import CreatorSpotlight from './CreatorSpotlight';
@@ -38,18 +38,31 @@ interface RightSidebarProps {
   electionDate: string;
 }
 
-const FollowCard: React.FC<{ user: { name: string; party: string; avatarUrl: string } }> = ({ user }) => (
-    <div className="flex items-center space-x-3">
-        <img src={user.avatarUrl} alt={user.name} className="h-11 w-11 rounded-full" />
-        <div className="flex-1">
-            <p className="font-bold text-sm text-white">{user.name}</p>
-            <p className="text-xs text-gray-400">{user.party}</p>
+const FollowCard: React.FC<{ user: { name: string; party: string; avatarUrl: string } }> = ({ user }) => {
+    const [isFollowing, setIsFollowing] = useState(false);
+
+    return (
+        <div className="flex items-center space-x-3">
+            <button onClick={() => alert(`Viewing profile for ${user.name}. Full profile pages are coming soon!`)} className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 rounded-full">
+                <img src={user.avatarUrl} alt={user.name} className="h-11 w-11 rounded-full" />
+            </button>
+            <div className="flex-1">
+                <button onClick={() => alert(`Viewing profile for ${user.name}. Full profile pages are coming soon!`)} className="font-bold text-sm text-white hover:underline focus:outline-none">{user.name}</button>
+                <p className="text-xs text-gray-400">{user.party}</p>
+            </div>
+            <button 
+                onClick={() => setIsFollowing(!isFollowing)}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
+                    isFollowing 
+                    ? 'bg-transparent border border-teal-500 text-teal-400' 
+                    : 'bg-teal-500 text-white hover:bg-teal-600'
+                }`}
+            >
+                {isFollowing ? 'Following' : 'Follow'}
+            </button>
         </div>
-        <button className="px-4 py-1.5 text-sm font-semibold bg-teal-500 text-white rounded-full hover:bg-teal-600 transition-colors">
-            Follow
-        </button>
-    </div>
-);
+    );
+};
 
 
 const RightSidebar: React.FC<RightSidebarProps> = ({ candidates, topics, electionDate }) => {

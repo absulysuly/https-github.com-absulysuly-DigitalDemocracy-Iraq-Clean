@@ -1,46 +1,48 @@
 import React, { useState } from 'react';
-import { Post, Comment as CommentType } from '../types';
-import { timeAgo } from '../utils/date';
-import { HeartIcon, HeartIconSolid, CommentIcon, ShareIcon } from './IconComponents';
-import CommentList from './CommentList';
-import CommentForm from './CommentForm';
+import { Post, Comment } from '../types';
 import { useAppContext } from '../contexts/AppContext';
+import { timeAgo } from '../utils/date';
+import { CommentIcon, HeartIcon, HeartIconSolid, ShareIcon } from './IconComponents';
 import PostSources from './PostSources';
+import CommentForm from './CommentForm';
+import CommentList from './CommentList';
 
 interface PostCardProps {
   post: Post;
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
-    const { user } = useAppContext();
-    const [isLiked, setIsLiked] = useState(false);
-    const [likes, setLikes] = useState(post.likes);
-    const [comments, setComments] = useState<CommentType[]>(post.comments);
-    const [showComments, setShowComments] = useState(false);
+  const { user } = useAppContext();
+  const [likes, setLikes] = useState(post.likes);
+  const [isLiked, setIsLiked] = useState(false);
+  const [comments, setComments] = useState<Comment[]>(post.comments);
+  const [showComments, setShowComments] = useState(false);
 
-    const handleLike = () => {
-        setIsLiked(!isLiked);
-        setLikes(isLiked ? likes - 1 : likes + 1);
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    setLikes(prevLikes => (isLiked ? prevLikes - 1 : prevLikes + 1));
+  };
+
+  const handleAddComment = (text: string) => {
+    if (!user) return;
+    const newComment: Comment = {
+      id: `c${Date.now()}`,
+      author: user,
+      text,
+      timestamp: new Date().toISOString(),
     };
+    setComments(prevComments => [newComment, ...prevComments]);
+  };
 
-    const handleAddComment = (text: string) => {
-        if (!user) return;
-        const newComment: CommentType = {
-            id: `c${Date.now()}`,
-            author: user,
-            text,
-            timestamp: new Date().toISOString(),
-        };
-        setComments([...comments, newComment]);
-    };
-
-    return (
-        <article className="p-4 border-b border-slate-700/50 hover:bg-slate-800/20 transition-colors duration-200">
+  return (
+    <article className="p-4 border-b border-slate-700/50 hover:bg-slate-800/20 transition-colors duration-200">
             <div className="flex space-x-4">
-                <img src={post.author.avatarUrl} alt={post.author.name} className="h-12 w-12 rounded-full flex-shrink-0" />
+                <button onClick={() => alert(`Viewing profile for ${post.author.name}. Full profile pages are coming soon!`)} className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 rounded-full">
+                    <img src={post.author.avatarUrl} alt={post.author.name} className="h-12 w-12 rounded-full" />
+                </button>
                 <div className="flex-1">
                     <div className="flex items-baseline space-x-2">
-                        <p className="font-bold text-white hover:underline cursor-pointer">{post.author.name}</p>
+                        <button onClick={() => alert(`Viewing profile for ${post.author.name}. Full profile pages are coming soon!`)} className="font-bold text-white hover:underline cursor-pointer focus:outline-none">{post.author.name}</button>
                         <p className="text-sm text-gray-400">· {timeAgo(post.timestamp)}</p>
                     </div>
 
@@ -77,7 +79,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                             </div>
                             <span className={`text-sm ${isLiked ? 'text-red-500' : ''}`}>{likes.toLocaleString()}</span>
                         </button>
-                         <button className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                         <button onClick={() => alert('Sharing post... (Full sharing functionality coming soon!)')} className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
                              <div className="p-2 group-hover:bg-green-500/10 rounded-full">
                                 <ShareIcon className="w-5 h-5" />
                             </div>

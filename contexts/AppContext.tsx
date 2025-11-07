@@ -3,6 +3,9 @@ import { User, Post, Candidate, TrendingTopic, Project } from '../types';
 import { getPosts, getCandidates, addPost as apiAddPost, getFeaturedUsers, getTrendingTopics } from '../services/api';
 import { GlobeAltIcon, MegaphoneIcon, ChartBarIcon, NewspaperIcon } from '../components/IconComponents';
 
+// --- Define Language Type ---
+export type Language = 'en' | 'ar' | 'ku';
+
 // --- Define Projects ---
 const PROJECTS: Project[] = [
     {
@@ -65,6 +68,8 @@ interface AppContextType {
   projects: Project[];
   currentProject: Project | null;
   setCurrentProject: (project: Project) => void;
+  language: Language;
+  setLanguage: (language: Language) => void;
   login: (user: User) => void;
   logout: () => void;
   addPost: (post: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>) => Promise<void>;
@@ -85,6 +90,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentProject, setCurrentProject] = useState<Project | null>(PROJECTS[0]);
+  const [language, setLanguage] = useState<Language>('en');
 
   // Pagination state
   const [page, setPage] = useState(1);
@@ -170,6 +176,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     projects: PROJECTS,
     currentProject,
     setCurrentProject: setCurrentProjectHandler,
+    language,
+    setLanguage,
     login,
     logout,
     addPost,

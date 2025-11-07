@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useAppContext, Language } from '../contexts/AppContext';
 
 interface ContentTabsProps {
   activeTab: 'social' | 'election';
@@ -6,18 +7,21 @@ interface ContentTabsProps {
 }
 
 const LanguageSelector: React.FC = () => {
-    // UI placeholder for now. In a real app, this would be tied to an i18n library.
-    const [selectedLang, setSelectedLang] = useState('en');
+    const { language, setLanguage } = useAppContext();
+
+    const handleSetLanguage = (lang: Language) => {
+        setLanguage(lang);
+    };
 
     return (
         <div className="flex items-center space-x-2 rounded-full bg-slate-800/80 p-1">
-            <button onClick={() => setSelectedLang('en')} className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedLang === 'en' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
+            <button onClick={() => handleSetLanguage('en')} className={`px-3 py-1 text-sm rounded-full transition-colors ${language === 'en' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
                 🇬🇧 English
             </button>
-            <button onClick={() => setSelectedLang('ku')} className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedLang === 'ku' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
+            <button onClick={() => handleSetLanguage('ku')} className={`px-3 py-1 text-sm rounded-full transition-colors ${language === 'ku' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
                 🇹🇯 کوردی
             </button>
-            <button onClick={() => setSelectedLang('ar')} className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedLang === 'ar' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
+            <button onClick={() => handleSetLanguage('ar')} className={`px-3 py-1 text-sm rounded-full transition-colors ${language === 'ar' ? 'bg-slate-600 text-white font-semibold' : 'text-gray-400 hover:bg-slate-700'}`}>
                 🇮🇶 العربية
             </button>
         </div>
