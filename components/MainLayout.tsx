@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import Header from './Header';
 import LeftSidebar from './LeftSidebar';
 import Feed from './Feed';
 import RightSidebar from './RightSidebar';
+import ContentTabs from './ContentTabs';
+import ElectionManagementDashboard from './ElectionManagementDashboard';
 
 const MainLayout: React.FC = () => {
   const { user, logout, candidates, trendingTopics } = useAppContext();
+  const [activeTab, setActiveTab] = useState<'social' | 'election'>('social');
 
   // This should not happen if MainLayout is rendered, but it's a good type guard.
   if (!user) {
@@ -24,8 +27,14 @@ const MainLayout: React.FC = () => {
         <div className="grid grid-cols-12 gap-8">
             <LeftSidebar user={user} candidates={candidates} />
 
-            <div className="col-span-12 lg:col-span-6">
-                <Feed />
+            <div className="col-span-12 lg:col-span-6 border-x border-slate-700/50 bg-slate-900/50 rounded-xl overflow-hidden">
+                <ContentTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+                
+                {activeTab === 'social' ? (
+                    <Feed />
+                ) : (
+                    <ElectionManagementDashboard />
+                )}
             </div>
             
             <RightSidebar 
