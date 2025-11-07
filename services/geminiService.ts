@@ -2,12 +2,16 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Source } from "../types";
 
 const API_KEY = process.env.API_KEY;
+let ai: GoogleGenAI | null = null;
 
-if (!API_KEY) {
+// Conditionally initialize the AI client.
+// This is the critical fix to prevent the app from crashing on deployment
+// when the environment variable is not set.
+if (API_KEY) {
+  ai = new GoogleGenAI({ apiKey: API_KEY });
+} else {
   console.warn("API_KEY environment variable not set. Gemini API calls will use mock data.");
 }
-
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 const systemInstruction = `You are an AI assistant for a civic engagement platform called 'Digital Democracy'. Your tone must be neutral, informative, and encouraging of constructive dialogue. Avoid partisan language, speculation, or inflammatory statements. When generating a post based on a topic, rely on the provided search results to ensure accuracy.`;
 
@@ -16,7 +20,8 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
     ? `Write a positive and engaging social media post for a political campaign about: "${topic}"`
     : `Write a positive and engaging social media post for a political campaign about improving local communities.`;
   
-  if (!API_KEY) {
+  // If the 'ai' client failed to initialize, return mock data immediately.
+  if (!ai) {
     console.log("Using mock response due to missing API key.");
     return new Promise(resolve => setTimeout(() => {
         resolve({
@@ -66,7 +71,8 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
 export const generateCreatorSpotlight = async (): Promise<{ quote: string; creatorHandle: string; }> => {
   const prompt = "Generate a short, inspirational quote about creativity, community, or technology. Also provide a fictional creator's social media handle (e.g., @digitaldreamer).";
   
-  if (!API_KEY) {
+  // If the 'ai' client failed to initialize, return mock data immediately.
+  if (!ai) {
     console.log("Using mock spotlight response due to missing API key.");
     return new Promise(resolve => setTimeout(() => {
         resolve({
