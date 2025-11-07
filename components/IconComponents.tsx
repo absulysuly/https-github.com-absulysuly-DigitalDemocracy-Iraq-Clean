@@ -56,6 +56,12 @@ export const DocumentTextIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+export const ClockIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
 export const LinkIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
@@ -78,5 +84,11 @@ export const UsersIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const IdentificationIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    </svg>
+);
+
+export const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.008 1.11-1.226.55-.218 1.192-.218 1.742 0 .55.218 1.02.684 1.11 1.226M14.25 21a2.25 2.25 0 002.25-2.25V15.188c0-.923.63-1.733 1.5-2.062a2.25 2.25 0 001.5-2.063V8.625a2.25 2.25 0 00-1.5-2.062 2.25 2.25 0 00-1.5-2.063V3.75A2.25 2.25 0 0014.25 1.5H9.75A2.25 2.25 0 007.5 3.75v.75c0 .923-.63 1.733-1.5 2.062a2.25 2.25 0 00-1.5 2.063v2.25a2.25 2.25 0 001.5 2.063 2.25 2.25 0 001.5 2.062v2.812A2.25 2.25 0 009.75 21h4.5z" />
     </svg>
 );

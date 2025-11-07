@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User } from '../types';
 
@@ -25,7 +24,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ user, onAddComment }) => {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+          className="w-full px-4 py-2 border border-slate-600 rounded-full bg-slate-700/50 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-colors placeholder:text-gray-400"
           placeholder="Write a comment..."
           aria-label="Write a comment"
         />
@@ -33,7 +32,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ user, onAddComment }) => {
       <button
         type="submit"
         disabled={!text.trim()}
-        className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-800 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 bg-teal-600 text-white font-semibold rounded-full hover:bg-teal-700 disabled:bg-teal-800/50 disabled:cursor-not-allowed transition-colors"
       >
         Post
       </button>

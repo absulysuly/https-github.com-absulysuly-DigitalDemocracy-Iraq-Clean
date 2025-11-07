@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Post, User } from '../types';
 import { HeartIcon, CommentIcon, ShareIcon, HeartIconSolid } from './IconComponents';
@@ -47,54 +46,54 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) 
   };
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+    <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-slate-700/50">
       <div className="p-4">
         <div className="flex items-center mb-4">
           <img src={post.author.avatarUrl} alt={post.author.name} className="h-12 w-12 rounded-full mr-4" />
           <div>
-            <p className="font-bold text-gray-800 dark:text-white">{post.author.name}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{timeAgo(post.timestamp)}</p>
+            <p className="font-bold text-white">{post.author.name}</p>
+            <p className="text-sm text-gray-400">{timeAgo(post.timestamp)}</p>
           </div>
         </div>
-        <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">{post.text}</p>
+        <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.text}</p>
         {post.sources && post.sources.length > 0 && <PostSources sources={post.sources} />}
       </div>
       {post.imageUrl && (
         <img src={post.imageUrl} alt="Post content" className="w-full h-auto max-h-96 object-cover" />
       )}
-      <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-2">
-         <div className="flex justify-between items-center text-gray-500 dark:text-gray-400">
+      <div className="border-t border-slate-700/50 px-4 py-2">
+         <div className="flex justify-between items-center text-gray-400">
           <div className="flex items-center space-x-1">
             <HeartIconSolid className="w-4 h-4 text-red-500" />
             <span>{likeCount.toLocaleString()}</span>
           </div>
-          <button onClick={() => setShowComments(!showComments)} className="hover:underline">
+          <button onClick={() => setShowComments(!showComments)} className="hover:underline text-sm">
             {post.comments.length} comments &middot; {post.shares} shares
           </button>
         </div>
       </div>
-      <div className="border-t border-gray-200 dark:border-gray-700 flex">
+      <div className="border-t border-slate-700/50 flex bg-slate-900/50">
         <button 
           onClick={handleLike}
-          className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none"
+          className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-300 hover:bg-slate-700/50 transition-colors duration-200 focus:outline-none"
         >
           {isLiked ? <HeartIconSolid className="w-6 h-6 text-red-500" /> : <HeartIcon className="w-6 h-6" />}
           <span className={`font-semibold ${isLiked ? 'text-red-500' : ''}`}>Like</span>
         </button>
         <button 
           onClick={() => setShowComments(!showComments)}
-          className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+          className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-300 hover:bg-slate-700/50 transition-colors duration-200"
         >
           <CommentIcon className="w-6 h-6" />
           <span className="font-semibold">Comment</span>
         </button>
-        <button className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+        <button className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-300 hover:bg-slate-700/50 transition-colors duration-200">
           <ShareIcon className="w-6 h-6" />
           <span className="font-semibold">Share</span>
         </button>
       </div>
       {showComments && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 bg-slate-900/50 border-t border-slate-700/50">
           <CommentForm user={currentUser} onAddComment={handleAddComment} />
           <CommentList comments={post.comments} />
         </div>
