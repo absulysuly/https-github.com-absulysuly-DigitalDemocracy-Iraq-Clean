@@ -1,26 +1,30 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { Source, TrendingTopic } from "../types";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { Source, TrendingTopic, AICampaignPlan, GeneratedAsset } from "../types";
 
 const API_KEY = process.env.API_KEY;
-let ai: GoogleGenAI | null = null;
 
-// Conditionally initialize the AI client.
-// This is the critical fix to prevent the app from crashing on deployment
-// when the environment variable is not set.
-if (API_KEY) {
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-} else {
-  console.warn("API_KEY environment variable not set. Gemini API calls will use mock data.");
-}
+// Utility to get a fresh AI client. Crucial for Veo which needs the latest key.
+const getAiClient = () => {
+    const key = process.env.API_KEY;
+    if (!key) {
+        console.warn("API_KEY environment variable not set. Gemini API calls will use mock data.");
+        return null;
+    }
+    return new GoogleGenAI({ apiKey: key });
+};
 
 const systemInstruction = `You are an AI assistant for a civic engagement platform called 'Digital Democracy'. Your tone must be neutral, informative, and encouraging of constructive dialogue. Avoid partisan language, speculation, or inflammatory statements. When generating a post based on a topic, rely on the provided search results to ensure accuracy.`;
 
+
+// --- EXISTING FUNCTIONS (Refactored to use getAiClient) ---
+
 export const generatePostContent = async (topic?: string): Promise<{ text: string; sources: Source[] }> => {
+  const ai = getAiClient();
+  // ... (rest of the function is the same, just uses the locally scoped 'ai' instance)
   const prompt = topic 
     ? `Write a positive and engaging social media post for a political campaign about: "${topic}"`
     : `Write a positive and engaging social media post for a political campaign about improving local communities.`;
   
-  // If the 'ai' client failed to initialize, return mock data immediately.
   if (!ai) {
     console.log("Using mock response due to missing API key.");
     return new Promise(resolve => setTimeout(() => {
@@ -68,12 +72,49 @@ export const generatePostContent = async (topic?: string): Promise<{ text: strin
   }
 };
 
+export const generateImageFromDescription = async (description: string): Promise<string | null> => {
+    // This function is now superseded by generatePremiumImage, but kept for the JSON upload feature
+    const ai = getAiClient();
+    const prompt = `Generate a visually appealing image for a social media post. The image should be a realistic, high-quality photo representing the following concept: "${description}"`;
+
+    if (!ai) {
+        console.log("Using mock image response due to missing API key.");
+        return new Promise(resolve => setTimeout(() => {
+            resolve(`https://picsum.photos/seed/${encodeURIComponent(description.slice(0,10))}/800/400`);
+        }, 1500));
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [{ text: prompt }],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE],
+            },
+        });
+
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                const base64ImageBytes: string = part.inlineData.data;
+                const mimeType = part.inlineData.mimeType;
+                return `data:${mimeType};base64,${base64ImageBytes}`;
+            }
+        }
+        throw new Error("No image data found in response.");
+
+    } catch (error) {
+        console.error("Error generating image with Gemini:", error);
+        return null;
+    }
+};
+
 export const generateCreatorSpotlight = async (): Promise<{ quote: string; author: string; }> => {
+  const ai = getAiClient();
   const prompt = `You are an AI for a civic engagement platform. Generate a short, powerful, and inspirational quote about one of the following topics: civic duty, community building, leadership, positive change, or the power of a single voice. The quote should be under 200 characters. Also, provide the name of a historical figure, philosopher, or an anonymous source (e.g., 'Ancient Proverb') to attribute the quote to.`;
   
-  // If the 'ai' client failed to initialize, return mock data immediately.
   if (!ai) {
-    console.log("Using mock spotlight response due to missing API key.");
     return new Promise(resolve => setTimeout(() => {
         resolve({
           quote: "The future is built by the hands of those who show up.",
@@ -115,11 +156,10 @@ export const generateCreatorSpotlight = async (): Promise<{ quote: string; autho
 };
 
 export const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
+  const ai = getAiClient();
   const prompt = `Generate a list of 5 current, realistic trending topics for a social media platform focused on civic engagement and politics. For each topic, provide a category (e.g., "National Politics", "Community", "Technology"), the topic title, and a fictional but realistic post count.`;
 
   if (!ai) {
-    console.log("Using mock trending topics due to missing API key.");
-    // This is just a fallback for local dev without a key, the main fallback is in api.ts
     return [];
   }
 
@@ -161,7 +201,163 @@ export const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
     }
   } catch (error) {
     console.error("Error generating trending topics with Gemini:", error);
-    // On error, the caller (api.ts) should handle fallback to mock data.
     throw new Error("Failed to generate trending topics from Gemini API.");
   }
+};
+
+// --- NEW AI CREATOR STUDIO FUNCTIONS ---
+
+export const generateCampaignWithThinking = async (prompt: string): Promise<AICampaignPlan> => {
+    const ai = getAiClient();
+    if (!ai) {
+        console.log("Using mock campaign response due to missing API key.");
+        return new Promise(resolve => setTimeout(() => {
+            resolve({
+                postText: `This is a mock campaign plan about "${prompt}". Gemini Pro would generate a comprehensive strategy here, including text, hashtags, and visual ideas.`,
+                hashtags: ["#MockCampaign", "#AI", "#CivicTech"],
+                visuals: [
+                    { description: "An inspiring photo of diverse community members working together.", type: 'image' },
+                    { description: "A short, energetic video montage of city improvements.", type: 'video' },
+                ],
+            });
+        }, 2000));
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: `Analyze the following user request and generate a strategic content plan for a social media post on the 'Digital Democracy' platform. The plan should be in a valid JSON object format. User request: "${prompt}"`,
+            config: {
+                systemInstruction: "You are a world-class campaign strategist. Your goal is to generate a complete, actionable social media content plan based on user requests. The output must be a single JSON object with the keys 'postText', 'hashtags' (an array of strings), and 'visuals' (an array of objects, each with 'description' and 'type' which can be 'image' or 'video').",
+                responseMimeType: "application/json",
+                thinkingConfig: { thinkingBudget: 32768 },
+            },
+        });
+
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+
+    } catch (error) {
+        console.error("Error generating campaign with Thinking Mode:", error);
+        throw new Error("Failed to generate campaign plan from Gemini API.");
+    }
+};
+
+export const generatePremiumImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16'): Promise<string> => {
+    const ai = getAiClient();
+    if (!ai) {
+        console.log("Using mock premium image due to missing API key.");
+        const seed = aspectRatio === '1:1' ? 'sq' : aspectRatio === '16:9' ? 'ls' : 'pt';
+        return new Promise(resolve => setTimeout(() => {
+             resolve(`https://picsum.photos/seed/${seed}${encodeURIComponent(prompt.slice(0,5))}/1024/1024`);
+        }, 1500));
+    }
+    
+    try {
+        const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: prompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: aspectRatio,
+            },
+        });
+
+        const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
+        return `data:image/jpeg;base64,${base64ImageBytes}`;
+
+    } catch(error) {
+        console.error("Error generating premium image with Imagen 4:", error);
+        throw new Error("Failed to generate premium image from Gemini API.");
+    }
+};
+
+export const editImage = async (base64ImageData: string, prompt: string): Promise<string> => {
+    const ai = getAiClient();
+    if (!ai) {
+        console.log("Using mock image edit due to missing API key.");
+        // Just return the original image with a delay to simulate an API call
+        return new Promise(resolve => setTimeout(() => resolve(base64ImageData), 1000));
+    }
+    
+    const mimeType = base64ImageData.substring(base64ImageData.indexOf(":") + 1, base64ImageData.indexOf(";"));
+    const data = base64ImageData.split(',')[1];
+
+    try {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: {
+            parts: [
+              { inlineData: { data, mimeType } },
+              { text: prompt },
+            ],
+          },
+          config: {
+              responseModalities: [Modality.IMAGE],
+          },
+        });
+
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                const newBase64: string = part.inlineData.data;
+                const newMimeType = part.inlineData.mimeType;
+                return `data:${newMimeType};base64,${newBase64}`;
+            }
+        }
+        throw new Error("No edited image data found in response.");
+        
+    } catch(error) {
+        console.error("Error editing image:", error);
+        throw new Error("Failed to edit image with Gemini API.");
+    }
+};
+
+export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16'): Promise<string> => {
+    // Veo needs its own client instance right before the call to ensure the latest key is used.
+    const ai = getAiClient(); 
+    if (!ai) {
+        console.log("Using mock video due to missing API key.");
+        return new Promise(resolve => setTimeout(() => resolve('https://www.w3schools.com/html/mov_bbb.mp4'), 5000));
+    }
+
+    try {
+        let operation = await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt: prompt,
+            config: {
+                numberOfVideos: 1,
+                resolution: '720p',
+                aspectRatio: aspectRatio
+            }
+        });
+
+        while (!operation.done) {
+            // Poll every 10 seconds
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            operation = await ai.operations.getVideosOperation({ operation: operation });
+        }
+
+        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+        if (!downloadLink) {
+            throw new Error("Video generation succeeded but no download link was found.");
+        }
+        
+        // Fetch the video as a blob and create a local URL to avoid CORS/API key issues in the video tag
+        const apiKey = process.env.API_KEY;
+        const response = await fetch(`${downloadLink}&key=${apiKey}`);
+        if (!response.ok) {
+            throw new Error(`Failed to download the generated video. Status: ${response.status}`);
+        }
+        const videoBlob = await response.blob();
+        return URL.createObjectURL(videoBlob);
+        
+    } catch(error) {
+        console.error("Error generating video with Veo:", error);
+        // Handle the specific API key error for Veo
+        if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
+             throw new Error("API key is not valid for Veo. Please select a valid key.");
+        }
+        throw new Error("Failed to generate video from Gemini API.");
+    }
 };

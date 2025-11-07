@@ -46,3 +46,21 @@ export interface TrendingTopic {
   topic: string;
   postCount: number;
 }
+
+// Types for the new AI Creator Studio
+export interface VisualSuggestion {
+  description: string;
+  type: 'image' | 'video';
+}
+
+export interface AICampaignPlan {
+  postText: string;
+  hashtags: string[];
+  visuals: VisualSuggestion[];
+}
+
+export interface GeneratedAsset {
+    type: 'image' | 'video';
+    url: string; // base64 data URI for image, downloadable URL for video
+    prompt: string;
+}

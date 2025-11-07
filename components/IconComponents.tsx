@@ -98,3 +98,34 @@ export const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.008 1.11-1.226.55-.218 1.192-.218 1.742 0 .55.218 1.02.684 1.11 1.226M14.25 21a2.25 2.25 0 002.25-2.25V15.188c0-.923.63-1.733 1.5-2.062a2.25 2.25 0 001.5-2.063V8.625a2.25 2.25 0 00-1.5-2.062 2.25 2.25 0 00-1.5-2.063V3.75A2.25 2.25 0 0014.25 1.5H9.75A2.25 2.25 0 007.5 3.75v.75c0 .923-.63 1.733-1.5 2.062a2.25 2.25 0 00-1.5 2.063v2.25a2.25 2.25 0 001.5 2.063 2.25 2.25 0 001.5 2.062v2.812A2.25 2.25 0 009.75 21h4.5z" />
     </svg>
 );
+
+export const DocumentUploadIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+);
+
+export const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
+
+export const WandIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-3.48-3.48l-1.622-1.622a3 3 0 00-4.243 4.243l1.622 1.622a3 3 0 003.48 3.48l1.622-1.622a3 3 0 004.243-4.243l-1.622-1.622zM13.47 12.388a3 3 0 00-3.48-3.48l-1.622-1.622a3 3 0 00-4.243 4.243l1.622 1.622a3 3 0 003.48 3.48l1.622-1.622a3 3 0 004.243-4.243l-1.622-1.622zM16.5 7.5l2.25 2.25M19.5 4.5l-2.25 2.25" />
+    </svg>
+);
+
+export const VideoIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+    </svg>
+);
+
+export const BrainCircuitIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-3.48-3.48l-1.622-1.622a3 3 0 00-4.243 4.243l1.622 1.622a3 3 0 003.48 3.48l1.622-1.622a3 3 0 004.243-4.243l-1.622-1.622zM13.47 12.388a3 3 0 00-3.48-3.48l-1.622-1.622a3 3 0 00-4.243 4.243l1.622 1.622a3 3 0 003.48 3.48l1.622-1.622a3 3 0 004.243-4.243l-1.622-1.622zM16.5 7.5l2.25 2.25M19.5 4.5l-2.25 2.25" />
+    </svg>
+);
