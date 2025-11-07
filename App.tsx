@@ -10,7 +10,8 @@ import FeaturedUsers from './components/FeaturedUsers';
 import { useAppContext } from './contexts/AppContext';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'feed' | 'candidates' | 'spotlight' | 'community'>('feed');
+  const [mainTab, setMainTab] = useState<'social' | 'election'>('social');
+  const [activeSubTab, setActiveSubTab] = useState<'feed' | 'candidates' | 'spotlight' | 'community'>('feed');
 
   const {
     currentUser,
@@ -24,6 +25,17 @@ const App: React.FC = () => {
     createCommunityPost,
     addComment
   } = useAppContext();
+
+  const MainTabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({ label, isActive, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`flex-1 py-3 text-center text-md font-bold transition-all duration-300 border-b-2 ${
+        isActive ? 'text-white border-teal-400 shadow-[0_4px_15px_-5px_rgba(0,169,157,0.5)]' : 'text-gray-400 border-transparent hover:text-white hover:border-gray-500'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   const SubTabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({ label, isActive, onClick }) => (
     <button onClick={onClick} className={`px-3 py-1.5 text-sm font-medium relative whitespace-nowrap transition-colors duration-200 focus:outline-none ${ isActive ? 'text-teal-400' : 'text-gray-400 hover:text-white' }`}>
@@ -49,44 +61,64 @@ const App: React.FC = () => {
                         <a href="#" className="hover:text-teal-400 font-bold text-white">English</a>
                     </div>
                 </div>
-                <CountdownTimer targetDate={launchDate} />
+
+                <div className="flex w-full mb-6">
+                    <MainTabButton label="Social Interaction" isActive={mainTab === 'social'} onClick={() => setMainTab('social')} />
+                    <MainTabButton label="Election Management" isActive={mainTab === 'election'} onClick={() => setMainTab('election')} />
+                </div>
+
+                {mainTab === 'social' && <CountdownTimer targetDate={launchDate} />}
             </div>
             
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
-               <div className="flex items-center border-b border-slate-700/50 mb-4 overflow-x-auto">
-                    <SubTabButton label="Feed" isActive={activeTab === 'feed'} onClick={() => setActiveTab('feed')} />
-                    <SubTabButton label="Candidates" isActive={activeTab === 'candidates'} onClick={() => setActiveTab('candidates')} />
-                    <SubTabButton label="Spotlight" isActive={activeTab === 'spotlight'} onClick={() => setActiveTab('spotlight')} />
-                    <SubTabButton label="Community" isActive={activeTab === 'community'} onClick={() => setActiveTab('community')} />
-               </div>
-                
-                <FeaturedUsers users={featuredUsers} />
-
-                <div>
-                  {activeTab === 'feed' && (
-                    <>
-                      <ComposePost user={currentUser} onCreatePost={createPost} />
-                      <Feed posts={posts} onAddComment={addComment} currentUser={currentUser} />
-                    </>
-                  )}
-                  {activeTab === 'candidates' && (
-                    <div className="space-y-4">
-                      <h2 className="text-xl font-bold text-white px-2">Meet the Candidates</h2>
-                      {isLoadingCandidates && <p className="text-center text-gray-400 py-4">Loading candidates...</p>}
-                      {candidateError && <p className="text-center text-red-500 py-4">{candidateError}</p>}
-                      {!isLoadingCandidates && !candidateError && candidates.map(candidate => <CandidateCard key={candidate.id} candidate={candidate} />)}
-                      {!isLoadingCandidates && !candidateError && candidates.length === 0 && <p className="text-center text-gray-400 py-4">No candidates found.</p>}
-                    </div>
-                  )}
-                  {activeTab === 'spotlight' && <CreatorSpotlight />}
-                  {activeTab === 'community' && (
-                    <>
-                      <ComposePost user={currentUser} onCreatePost={createCommunityPost} />
-                      <Feed posts={communityPosts} onAddComment={addComment} currentUser={currentUser} />
-                    </>
-                  )}
+            {mainTab === 'social' && (
+              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
+                <div className="flex items-center border-b border-slate-700/50 mb-4 overflow-x-auto">
+                      <SubTabButton label="Feed" isActive={activeSubTab === 'feed'} onClick={() => setActiveSubTab('feed')} />
+                      <SubTabButton label="Candidates" isActive={activeSubTab === 'candidates'} onClick={() => setActiveSubTab('candidates')} />
+                      <SubTabButton label="Spotlight" isActive={activeSubTab === 'spotlight'} onClick={() => setActiveSubTab('spotlight')} />
+                      <SubTabButton label="Community" isActive={activeSubTab === 'community'} onClick={() => setActiveSubTab('community')} />
                 </div>
-            </div>
+                  
+                  <FeaturedUsers users={featuredUsers} />
+
+                  <div>
+                    {activeSubTab === 'feed' && (
+                      <>
+                        <ComposePost user={currentUser} onCreatePost={createPost} />
+                        <Feed posts={posts} onAddComment={addComment} currentUser={currentUser} />
+                      </>
+                    )}
+                    {activeSubTab === 'candidates' && (
+                      <div className="space-y-4">
+                        <h2 className="text-xl font-bold text-white px-2">Meet the Candidates</h2>
+                        {isLoadingCandidates && <p className="text-center text-gray-400 py-4">Loading candidates...</p>}
+                        {candidateError && <p className="text-center text-red-500 py-4">{candidateError}</p>}
+                        {!isLoadingCandidates && !candidateError && candidates.map(candidate => <CandidateCard key={candidate.id} candidate={candidate} />)}
+                        {!isLoadingCandidates && !candidateError && candidates.length === 0 && <p className="text-center text-gray-400 py-4">No candidates found.</p>}
+                      </div>
+                    )}
+                    {activeSubTab === 'spotlight' && <CreatorSpotlight />}
+                    {activeSubTab === 'community' && (
+                      <>
+                        <ComposePost user={currentUser} onCreatePost={createCommunityPost} />
+                        <Feed posts={communityPosts} onAddComment={addComment} currentUser={currentUser} />
+                      </>
+                    )}
+                  </div>
+              </div>
+            )}
+
+            {mainTab === 'election' && (
+                <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+                    <h2 className="text-2xl font-bold text-white mb-4">Election Management</h2>
+                    <p className="text-gray-300">
+                        This section is under construction and will be the future home of the powerful data tools from the "missinggold" project.
+                    </p>
+                    <p className="text-gray-400 mt-2">
+                        Features for managing election data, tracking results, analyzing demographics, and viewing civic facility information will be available here soon.
+                    </p>
+                </div>
+            )}
           </main>
           <RightSidebar candidates={candidates} />
         </div>
