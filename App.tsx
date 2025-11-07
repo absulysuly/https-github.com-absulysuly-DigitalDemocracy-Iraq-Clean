@@ -9,9 +9,16 @@ import RightSidebar from './components/RightSidebar';
 import FeaturedUsers from './components/FeaturedUsers';
 import { useAppContext } from './contexts/AppContext';
 
+const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
+    <div className="text-center py-16">
+        <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+        <p className="text-gray-400">This section is under construction. Exciting features coming soon!</p>
+    </div>
+);
+
 const App: React.FC = () => {
   const [mainTab, setMainTab] = useState<'social' | 'election'>('social');
-  const [activeSubTab, setActiveSubTab] = useState<'feed' | 'candidates' | 'spotlight' | 'community'>('feed');
+  const [activeSubTab, setActiveSubTab] = useState<'feed' | 'real' | 'candidates' | 'women' | 'minorities' | 'whisper' | 'community'>('feed');
 
   const {
     currentUser,
@@ -44,7 +51,8 @@ const App: React.FC = () => {
     </button>
   );
 
-  const launchDate = new Date(new Date().getFullYear() + 1, 0, 1).toISOString();
+  // Corrected election date: November 11th of the current year.
+  const electionDate = new Date(new Date().getFullYear(), 10, 11).toISOString();
 
   return (
     <div className="min-h-screen text-gray-200 font-sans">
@@ -67,15 +75,18 @@ const App: React.FC = () => {
                     <MainTabButton label="Election Management" isActive={mainTab === 'election'} onClick={() => setMainTab('election')} />
                 </div>
 
-                {mainTab === 'social' && <CountdownTimer targetDate={launchDate} />}
+                {mainTab === 'social' && <CountdownTimer targetDate={electionDate} />}
             </div>
             
             {mainTab === 'social' && (
               <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
                 <div className="flex items-center border-b border-slate-700/50 mb-4 overflow-x-auto">
                       <SubTabButton label="Feed" isActive={activeSubTab === 'feed'} onClick={() => setActiveSubTab('feed')} />
+                      <SubTabButton label="Real" isActive={activeSubTab === 'real'} onClick={() => setActiveSubTab('real')} />
                       <SubTabButton label="Candidates" isActive={activeSubTab === 'candidates'} onClick={() => setActiveSubTab('candidates')} />
-                      <SubTabButton label="Spotlight" isActive={activeSubTab === 'spotlight'} onClick={() => setActiveSubTab('spotlight')} />
+                      <SubTabButton label="Women" isActive={activeSubTab === 'women'} onClick={() => setActiveSubTab('women')} />
+                      <SubTabButton label="Minorities" isActive={activeSubTab === 'minorities'} onClick={() => setActiveSubTab('minorities')} />
+                      <SubTabButton label="Whisper" isActive={activeSubTab === 'whisper'} onClick={() => setActiveSubTab('whisper')} />
                       <SubTabButton label="Community" isActive={activeSubTab === 'community'} onClick={() => setActiveSubTab('community')} />
                 </div>
                   
@@ -88,6 +99,7 @@ const App: React.FC = () => {
                         <Feed posts={posts} onAddComment={addComment} currentUser={currentUser} />
                       </>
                     )}
+                    {activeSubTab === 'real' && <PlaceholderContent title="Real" />}
                     {activeSubTab === 'candidates' && (
                       <div className="space-y-4">
                         <h2 className="text-xl font-bold text-white px-2">Meet the Candidates</h2>
@@ -97,7 +109,9 @@ const App: React.FC = () => {
                         {!isLoadingCandidates && !candidateError && candidates.length === 0 && <p className="text-center text-gray-400 py-4">No candidates found.</p>}
                       </div>
                     )}
-                    {activeSubTab === 'spotlight' && <CreatorSpotlight />}
+                    {activeSubTab === 'women' && <PlaceholderContent title="Women" />}
+                    {activeSubTab === 'minorities' && <PlaceholderContent title="Minorities" />}
+                    {activeSubTab === 'whisper' && <PlaceholderContent title="Whisper" />}
                     {activeSubTab === 'community' && (
                       <>
                         <ComposePost user={currentUser} onCreatePost={createCommunityPost} />

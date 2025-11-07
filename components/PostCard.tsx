@@ -40,9 +40,20 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) 
         <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.text}</p>
         {post.sources && post.sources.length > 0 && <PostSources sources={post.sources} />}
       </div>
-      {post.imageUrl && (
+      
+      {post.videoUrl && (
+        <div className="w-full bg-black aspect-video">
+            <video controls className="w-full h-full object-contain">
+                <source src={post.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+            </video>
+        </div>
+      )}
+      
+      {post.imageUrl && !post.videoUrl && (
         <img src={post.imageUrl} alt="Post content" className="w-full h-auto max-h-96 object-cover" />
       )}
+
       <div className="border-t border-slate-700/50 px-4 py-2">
          <div className="flex justify-between items-center text-gray-400">
           <div className="flex items-center space-x-1">
