@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import Header from './Header';
 import LeftSidebar from './LeftSidebar';
-import Feed from './Feed';
 import RightSidebar from './RightSidebar';
+import Feed from './Feed';
 import ContentTabs from './ContentTabs';
 import ElectionManagementDashboard from './ElectionManagementDashboard';
 
@@ -11,40 +11,32 @@ const MainLayout: React.FC = () => {
   const { user, logout, candidates, trendingTopics } = useAppContext();
   const [activeTab, setActiveTab] = useState<'social' | 'election'>('social');
 
-  // This should not happen if MainLayout is rendered, but it's a good type guard.
+  // For CountdownTimer
+  const electionDate = new Date(new Date().getFullYear() + 1, 10, 5).toISOString();
+
   if (!user) {
+    // This should ideally not happen if routing is correct, but as a safeguard:
     return null; 
   }
 
-  // A future date for the election countdown
-  const electionDate = new Date(new Date().getFullYear() + 1, 10, 5).toISOString();
-
-
   return (
-    <>
-      <Header user={user} onLogout={logout} />
-      <div className="container mx-auto px-4 mt-4">
-        <div className="grid grid-cols-12 gap-8">
-            <LeftSidebar user={user} candidates={candidates} />
+    <div className="container mx-auto">
+      <div className="grid grid-cols-12 gap-0 sm:gap-4 md:gap-8">
+        <LeftSidebar />
 
-            <div className="col-span-12 lg:col-span-6 border-x border-slate-700/50 bg-slate-900/50 rounded-xl overflow-hidden">
-                <ContentTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-                
-                {activeTab === 'social' ? (
-                    <Feed />
-                ) : (
-                    <ElectionManagementDashboard />
-                )}
-            </div>
-            
-            <RightSidebar 
-                candidates={candidates}
-                topics={trendingTopics}
-                electionDate={electionDate}
-            />
-        </div>
+        <main className="col-span-12 sm:col-span-11 xl:col-span-7 border-x border-slate-700/50 min-h-screen">
+          {/* MainLayout doesn't render Header anymore as it is outside the grid for stickiness */}
+          <ContentTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+          {activeTab === 'social' ? <Feed /> : <ElectionManagementDashboard />}
+        </main>
+        
+        <RightSidebar
+          candidates={candidates}
+          topics={trendingTopics}
+          electionDate={electionDate}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

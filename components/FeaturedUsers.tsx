@@ -12,23 +12,22 @@ const FeaturedUsers: React.FC<FeaturedUsersProps> = ({ users }) => {
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-2">
       <div className="flex space-x-4 overflow-x-auto pb-3 -mx-4 px-4">
         {users.map((user) => (
-          <div key={user.id} className="flex-shrink-0 text-center w-20">
+          <div key={user.id} className="flex-shrink-0 text-center w-20 group">
             <button
               onClick={() => handleStoryClick(user.name)}
-              className="relative focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 rounded-full group"
+              className="relative p-1 bg-gradient-to-tr from-purple-500 to-teal-400 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:-rotate-6"
               aria-label={`View story from ${user.name}`}
             >
               <img
                 src={user.avatarUrl}
                 alt={user.name}
-                className="h-16 w-16 rounded-full mx-auto border-2 border-teal-500 p-0.5 group-hover:scale-105 transition-transform duration-200"
+                className="h-16 w-16 rounded-full border-4 border-slate-800"
               />
-               <span className="absolute bottom-0 right-2 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></span>
             </button>
-            <p className="text-xs text-white mt-2 truncate">{user.name}</p>
+            <p className="text-xs text-white mt-2 truncate transition-colors group-hover:text-teal-300">{user.name}</p>
           </div>
         ))}
       </div>

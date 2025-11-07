@@ -1,188 +1,110 @@
-import { Post, User, Candidate, Comment, TrendingTopic } from '../types';
-import { generateTrendingTopics } from './geminiService';
+import { Post, User, Comment, Candidate, TrendingTopic, Source } from '../types';
 
-// Mock data generation functions
-const createMockUser = (id: number, name: string, avatarId: number): User => ({
-  id: `u${id}`,
-  name,
-  avatarUrl: `https://picsum.photos/id/${avatarId}/100/100`,
-});
+// MOCK DATA
+const mockUsers: User[] = [
+  { id: 'u1', name: 'Amara Al-Jamil', avatarUrl: 'https://picsum.photos/id/1011/100/100' },
+  { id: 'u2', name: 'Bao Khan', avatarUrl: 'https://picsum.photos/id/1025/100/100' },
+  { id: 'u3', name: 'Carlos Diaz', avatarUrl: 'https://picsum.photos/id/1027/100/100' },
+  { id: 'u4', name: 'Daria Ivanova', avatarUrl: 'https://picsum.photos/id/237/100/100' },
+  { id: 'u5', name: 'Elias Weber', avatarUrl: 'https://picsum.photos/id/305/100/100' },
+  { id: 'u6', name: 'Fatima Zahra', avatarUrl: 'https://picsum.photos/id/433/100/100' },
+  { id: 'u7', name: 'George Papadopoulos', avatarUrl: 'https://picsum.photos/id/10/100/100' },
+];
 
-const createMockComment = (id: number, author: User, text: string, minutesAgo: number): Comment => ({
-  id: `c${id}`,
-  author,
-  text,
-  timestamp: new Date(Date.now() - minutesAgo * 60 * 1000).toISOString(),
-});
+const mockComments: Comment[] = [
+  { id: 'c1', author: mockUsers[2], text: "Great point! We need to focus on this.", timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+  { id: 'c2', author: mockUsers[3], text: "I completely agree. This is a crucial issue.", timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
+];
 
-// Mock Users
-const user1 = createMockUser(1, 'Amara Al-Jamil', 1011);
-const user2 = createMockUser(2, 'Ben Carter', 1025);
-const user3 = createMockUser(3, 'Chen Wei', 1027);
-const user4 = createMockUser(4, 'Diana Prince', 1028);
-
-// Mock Posts - Expanded for pagination
 const mockPosts: Post[] = [
   {
     id: 'p1',
-    author: user2,
-    text: 'Excited to announce our new initiative to build more green spaces in the city center. A healthier community starts with a healthier environment! 🌳 #GreenCity #CommunityFirst',
-    imageUrl: 'https://picsum.photos/seed/citypark/800/400',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    author: mockUsers[1],
+    text: "Just attended the town hall on urban green spaces. It's inspiring to see so many people passionate about improving our city's environment. Let's keep this momentum going! #UrbanRenewal #GreenCity",
+    imageUrl: 'https://picsum.photos/seed/greenspace/800/450',
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     likes: 128,
-    comments: [
-      createMockComment(1, user3, 'This is fantastic news! Looking forward to it.', 5),
-      createMockComment(2, user4, 'Great initiative! Where can we find more details?', 10),
-    ],
-    shares: 45,
+    comments: mockComments,
+    shares: 42,
     sources: [
-        { title: "City Planning Commission - Green Space Initiative", uri: "#" },
-        { title: "Environmental Impact Report - Urban Parks", uri: "#" },
+        { title: 'City Council Meeting Minutes', uri: '#' },
+        { title: 'Urban Planning Commission Report', uri: '#' }
     ]
   },
   {
     id: 'p2',
-    author: user3,
-    text: "Our new policy proposal aims to support local small businesses with tax incentives and streamlined regulations. Let's empower our local entrepreneurs to thrive!",
-    timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), // 18 hours ago
-    likes: 256,
-    comments: [
-        createMockComment(3, user1, 'As a small business owner, I really appreciate this.', 120),
-    ],
-    shares: 88,
+    author: mockUsers[4],
+    text: "Early voting starts next week! Make sure you're registered and have a plan to vote. Your voice matters in shaping our community's future. #VoteEarly #CivicDuty",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    likes: 452,
+    comments: [],
+    shares: 112,
   },
   {
     id: 'p3',
-    author: user4,
-    text: "Just had a productive town hall meeting discussing the future of our public transportation system. Thanks to everyone who came out and shared their ideas!",
+    author: mockUsers[0],
+    text: "Excited to share our new proposal for expanding local public transportation. Better transit means less traffic, cleaner air, and more accessible opportunities for everyone. Full details in the link below. #PublicTransit #CommunityFirst",
     videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    likes: 99,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    likes: 834,
     comments: [],
-    shares: 21,
+    shares: 231,
+    sources: [
+        { title: 'Official Transit Expansion Proposal PDF', uri: '#' }
+    ]
   },
   {
     id: 'p4',
-    author: user1,
-    text: "Voter registration deadlines are approaching! Make sure your voice is heard. Check your status and register online today. Every vote counts. #VoteReady #CivicDuty",
-    imageUrl: 'https://picsum.photos/seed/vote/800/400',
-    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    likes: 543,
+    author: mockUsers[5],
+    text: "Debate night recap: Strong points were made on both sides regarding economic policy. It's crucial we continue this dialogue respectfully. What were your key takeaways? #EconomicDebate #DigitalDemocracy",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString(),
+    likes: 310,
     comments: [],
-    shares: 150,
-  },
-  {
-    id: 'p5',
-    author: user2,
-    text: "Reviewing the latest budget proposal for education. Investing in our schools is investing in our future. Let's prioritize our students. 📚",
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    likes: 301,
-    comments: [],
-    shares: 65,
-  },
-    {
-    id: 'p6',
-    author: user3,
-    text: "Public safety is a top priority. We're working with community leaders to implement new neighborhood watch programs. Together, we can build a safer city for everyone.",
-    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    likes: 189,
-    comments: [],
-    shares: 40,
-  },
-  {
-    id: 'p7',
-    author: user4,
-    text: "The new infrastructure bill will create thousands of jobs and modernize our roads and bridges. This is a huge win for our economy and our daily commutes!",
-    imageUrl: 'https://picsum.photos/seed/bridge/800/400',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    likes: 721,
-    comments: [],
-    shares: 210,
-  },
-   {
-    id: 'p8',
-    author: user1,
-    text: "Let's talk about digital literacy for seniors. We're launching free workshops at local libraries to help everyone stay connected in this digital age. #DigitalInclusion",
-    timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    likes: 215,
-    comments: [],
-    shares: 55,
-  },
+    shares: 77,
+  }
+];
+
+export const mockCandidates: Candidate[] = [
+    { id: 'can1', name: 'Amara Al-Jamil', party: 'Visionary Party', avatarUrl: 'https://picsum.photos/id/1011/100/100', supporters: 125345, postCount: 234, governorate: 'Baghdad', gender: 'Female' },
+    { id: 'can2', name: 'Bao Khan', party: 'Progress Alliance', avatarUrl: 'https://picsum.photos/id/1025/100/100', supporters: 110876, postCount: 198, governorate: 'Basra', gender: 'Male' },
+    { id: 'can3', name: 'Carlos Diaz', party: 'Common Ground Coalition', avatarUrl: 'https://picsum.photos/id/1027/100/100', supporters: 98450, postCount: 155, governorate: 'Nineveh', gender: 'Male' },
+    { id: 'can4', name: 'Daria Ivanova', party: 'Future Forward', avatarUrl: 'https://picsum.photos/id/237/100/100', supporters: 115670, postCount: 210, governorate: 'Erbil', gender: 'Female' },
+];
+
+export const mockTrendingTopics: TrendingTopic[] = [
+    { category: 'National Politics', topic: '#HealthcareReform', postCount: 125000 },
+    { category: 'Technology', topic: 'Digital Voting Security', postCount: 78000 },
+    { category: 'Community', topic: '#SupportLocalBusiness', postCount: 45000 },
+    { category: 'Environment', topic: 'Clean Energy Initiative', postCount: 92000 },
+    { category: 'Economy', topic: 'Job Market Outlook', postCount: 110000 },
 ];
 
 
-const mockCandidates: Candidate[] = [
-  { id: 'cand1', name: 'Elena Vance', party: 'Future Forward Party', avatarUrl: 'https://picsum.photos/id/237/100/100', supporters: 125321, postCount: 189, governorate: 'Capital Governorate', gender: 'Female' },
-  { id: 'cand2', name: 'Marcus Thorne', party: 'Pioneer Alliance', avatarUrl: 'https://picsum.photos/id/238/100/100', supporters: 110456, postCount: 152, governorate: 'Northern Governorate', gender: 'Male' },
-  { id: 'cand3', name: 'Sofia Chen', party: 'Unity Movement', avatarUrl: 'https://picsum.photos/id/239/100/100', supporters: 98765, postCount: 134, governorate: 'Southern Governorate', gender: 'Female' },
-  { id: 'cand4', name: 'Jamal Al-Farsi', party: 'Progressive Coalition', avatarUrl: 'https://picsum.photos/id/240/100/100', supporters: 89123, postCount: 112, governorate: 'Muharraq Governorate', gender: 'Male' },
-];
+// MOCK API FUNCTIONS
 
-const mockFeaturedUsers: User[] = [
-    createMockUser(10, 'Leo Valdez', 10),
-    createMockUser(11, 'Piper McLean', 11),
-    createMockUser(12, 'Frank Zhang', 12),
-    createMockUser(13, 'Hazel Levesque', 13),
-    createMockUser(14, 'Jason Grace', 14),
-    createMockUser(15, 'Annabeth Chase', 15),
-    createMockUser(16, 'Percy Jackson', 16),
-];
+const apiDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const mockTrendingTopics: TrendingTopic[] = [
-  { category: 'National Politics', topic: 'Healthcare Reform Bill', postCount: 18200 },
-  { category: 'Local Community', topic: 'New Downtown Park Project', postCount: 9800 },
-  { category: 'Technology', topic: 'Digital Voting Security', postCount: 12500 },
-  { category: 'Environment', topic: 'Clean Energy Initiatives', postCount: 7600 },
-  { category: 'Election 2024', topic: '#DebateNight', postCount: 25000 },
-];
-
-export const getPosts = async (page: number = 1, limit: number = 5): Promise<{ posts: Post[], hasMore: boolean }> => {
-  // Simulate network delay
-  await new Promise(res => setTimeout(res, 500));
-  
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-  
-  const paginatedPosts = mockPosts.slice(startIndex, endIndex);
-  const hasMore = endIndex < mockPosts.length;
-  
+export const fetchPosts = async (page: number = 1, limit: number = 4): Promise<{ posts: Post[], hasMore: boolean }> => {
+  await apiDelay(800);
+  console.log(`Fetching page ${page}`);
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const paginatedPosts = [...mockPosts, ...mockPosts, ...mockPosts].slice(start, end); // Just repeat for infinite scroll effect
+  const hasMore = end < mockPosts.length * 3;
   return { posts: paginatedPosts, hasMore };
 };
 
-export const getCandidates = async (): Promise<Candidate[]> => {
-    await new Promise(res => setTimeout(res, 300));
+export const fetchCandidates = async (): Promise<Candidate[]> => {
+    await apiDelay(500);
     return mockCandidates;
 };
 
-export const getFeaturedUsers = async (): Promise<User[]> => {
-    await new Promise(res => setTimeout(res, 200));
-    return mockFeaturedUsers;
+export const fetchTrendingTopics = async (): Promise<TrendingTopic[]> => {
+    await apiDelay(600);
+    return mockTrendingTopics;
 };
 
-export const getTrendingTopics = async (): Promise<TrendingTopic[]> => {
-    try {
-        const topics = await generateTrendingTopics();
-        // If Gemini returns an empty array, or for any reason it fails and returns empty, use mock data.
-        if (topics && topics.length > 0) {
-            return topics;
-        }
-        return mockTrendingTopics;
-    } catch (error) {
-        console.warn("Failed to fetch trending topics from Gemini, using mock data.", error);
-        return mockTrendingTopics;
-    }
+export const fetchFeaturedUsers = async (): Promise<User[]> => {
+    await apiDelay(400);
+    return mockUsers.slice(0, 7); // Return first 7 for the stories bar
 };
-
-export const addPost = async (post: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>): Promise<Post> => {
-    await new Promise(res => setTimeout(res, 400));
-    const newPost: Post = {
-        id: `p${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        likes: 0,
-        comments: [],
-        shares: 0,
-        ...post,
-    };
-    mockPosts.unshift(newPost);
-    return newPost;
-}

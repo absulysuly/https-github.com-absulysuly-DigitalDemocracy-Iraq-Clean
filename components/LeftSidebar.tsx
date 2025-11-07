@@ -1,51 +1,75 @@
 import React from 'react';
-import { Candidate, User } from '../types';
-import { HomeIcon, UsersIcon, IdentificationIcon, SettingsIcon, ChartBarIcon } from './IconComponents';
-import CandidateCard from './CandidateCard';
 import { useAppContext } from '../contexts/AppContext';
+import {
+  HomeIcon,
+  HashtagIcon,
+  UsersIcon,
+  BellIcon,
+  BookmarkIcon,
+  DocumentTextIcon,
+  CogIcon,
+  LogoIcon
+} from './IconComponents';
+import { User } from '../types';
 
-interface LeftSidebarProps {
-  user: User;
-  candidates: Candidate[];
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  isActive?: boolean;
 }
 
-const NavLink: React.FC<{ icon: React.ReactNode, label: string, isActive?: boolean }> = ({ icon, label, isActive }) => (
-  <a href="#" className={`flex items-center space-x-4 px-4 py-3 rounded-full transition-colors duration-200 ${isActive ? 'bg-teal-500/20 text-teal-300 font-bold' : 'hover:bg-slate-700/50 text-gray-300'}`}>
-    {icon}
-    <span className="text-lg">{label}</span>
-  </a>
-);
-
-const LeftSidebar: React.FC<LeftSidebarProps> = ({ candidates }) => {
-  const { currentProject } = useAppContext();
+const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive }) => {
+  const activeClasses = 'bg-slate-800 text-white font-bold';
+  const inactiveClasses = 'text-gray-400 hover:bg-slate-800/50 hover:text-white';
 
   return (
-    <aside className="col-span-12 lg:col-span-3 hidden lg:block">
-      <div className="sticky top-20 space-y-6">
-        <nav className="space-y-2">
-          <NavLink icon={<HomeIcon className="w-7 h-7" />} label="Home" isActive />
-          <NavLink icon={<UsersIcon className="w-7 h-7" />} label="Community" />
-          <NavLink icon={<IdentificationIcon className="w-7 h-7" />} label="Candidates" />
-          
-          {/* Conditional Link for Live Election Hub */}
-          {currentProject?.id === 'live-election-hub' && (
-              <a href="#" className="flex items-center space-x-4 px-4 py-3 rounded-full transition-colors duration-200 bg-teal-600/20 border border-teal-500/50 text-teal-300 font-bold animate-pulse hover:animate-none hover:bg-teal-500/30">
-                  <ChartBarIcon className="w-7 h-7"/>
-                  <span className="text-lg">Live Election Hub</span>
-              </a>
-          )}
+    <button className={`flex items-center space-x-4 px-4 py-3 rounded-full transition-colors duration-200 w-full text-left ${isActive ? activeClasses : inactiveClasses}`}>
+      {icon}
+      <span className="text-xl hidden xl:inline">{label}</span>
+    </button>
+  );
+};
 
-          <NavLink icon={<SettingsIcon className="w-7 h-7" />} label="Settings" />
-        </nav>
-
-        <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
-          <h3 className="text-lg font-bold text-white mb-4">Top Candidates</h3>
-          <div className="space-y-2">
-            {candidates.map(candidate => (
-              <CandidateCard key={candidate.id} candidate={candidate} />
-            ))}
-          </div>
+const UserProfile: React.FC<{ user: User }> = ({ user }) => {
+    const { logout } = useAppContext();
+    return (
+        <div className="mt-6">
+            <button 
+                onClick={logout} 
+                className="w-full flex items-center space-x-3 p-3 rounded-full hover:bg-slate-800/50 transition-colors"
+            >
+                <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 rounded-full" />
+                <div className="flex-1 text-left hidden xl:block">
+                    <p className="font-bold text-white leading-tight">{user.name}</p>
+                    <p className="text-sm text-gray-400 leading-tight">@{user.name.replace(/\s+/g, '').toLowerCase()}</p>
+                </div>
+            </button>
         </div>
+    );
+}
+
+const LeftSidebar: React.FC = () => {
+    const { user } = useAppContext();
+
+  return (
+    <aside className="col-span-12 sm:col-span-1 xl:col-span-2">
+      <div className="sticky top-0 h-screen flex flex-col justify-between py-4">
+        <div>
+            <div className="p-3">
+                <LogoIcon className="w-8 h-8 text-teal-400" />
+            </div>
+            <nav className="mt-4 space-y-2">
+            <NavItem icon={<HomeIcon className="w-7 h-7" />} label="Home" isActive />
+            <NavItem icon={<HashtagIcon className="w-7 h-7" />} label="Explore" />
+            <NavItem icon={<UsersIcon className="w-7 h-7" />} label="Candidates" />
+            <NavItem icon={<BellIcon className="w-7 h-7" />} label="Notifications" />
+            <NavItem icon={<BookmarkIcon className="w-7 h-7" />} label="Bookmarks" />
+            <NavItem icon={<DocumentTextIcon className="w-7 h-7" />} label="Voter Center" />
+            <NavItem icon={<CogIcon className="w-7 h-7" />} label="Settings" />
+            </nav>
+        </div>
+        
+        {user && <UserProfile user={user} />}
       </div>
     </aside>
   );

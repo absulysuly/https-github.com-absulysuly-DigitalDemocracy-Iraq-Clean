@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import { useAppContext } from './contexts/AppContext';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
+import Header from './components/Header';
 
 const App: React.FC = () => {
-  const { isAuthenticated, language } = useAppContext();
+  const { isAuthenticated, language, user, logout } = useAppContext();
 
   useEffect(() => {
     const direction = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
@@ -14,8 +15,15 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="bg-slate-900 text-gray-100 min-h-screen">
-      {isAuthenticated ? <MainLayout /> : <LoginPage />}
+    <div className="text-gray-100 min-h-screen">
+      {isAuthenticated && user ? (
+        <>
+          <Header user={user} onLogout={logout} />
+          <MainLayout />
+        </>
+      ) : (
+        <LoginPage />
+      )}
     </div>
   );
 };
