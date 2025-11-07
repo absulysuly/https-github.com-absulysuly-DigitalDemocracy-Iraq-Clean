@@ -4,6 +4,8 @@ import { HeartIcon, CommentIcon, ShareIcon, HeartIconSolid } from './IconCompone
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import PostSources from './PostSources';
+import { useAppContext } from '../contexts/AppContext';
+import { timeAgo } from '../utils/date';
 
 interface PostCardProps {
   post: Post;
@@ -12,33 +14,13 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
+  const { likedPosts, toggleLike } = useAppContext();
   const [showComments, setShowComments] = useState(false);
 
-  const timeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    let interval = seconds / 31536000;
-    if (interval > 1) return Math.floor(interval) + "y ago";
-    interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + "mo ago";
-    interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + "d ago";
-    interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + "h ago";
-    interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + "m ago";
-    return Math.floor(seconds) + "s ago";
-  };
+  const isLiked = likedPosts.has(post.id);
 
   const handleLike = () => {
-    if (isLiked) {
-      setLikeCount(prev => prev - 1);
-    } else {
-      setLikeCount(prev => prev + 1);
-    }
-    setIsLiked(!isLiked);
+    toggleLike(post.id);
   };
 
   const handleAddComment = (commentText: string) => {
@@ -65,7 +47,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) 
          <div className="flex justify-between items-center text-gray-400">
           <div className="flex items-center space-x-1">
             <HeartIconSolid className="w-4 h-4 text-red-500" />
-            <span>{likeCount.toLocaleString()}</span>
+            <span>{post.likes.toLocaleString()}</span>
           </div>
           <button onClick={() => setShowComments(!showComments)} className="hover:underline text-sm">
             {post.comments.length} comments &middot; {post.shares} shares
@@ -76,6 +58,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAddComment, currentUser }) 
         <button 
           onClick={handleLike}
           className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-300 hover:bg-slate-700/50 transition-colors duration-200 focus:outline-none"
+          aria-pressed={isLiked}
         >
           {isLiked ? <HeartIconSolid className="w-6 h-6 text-red-500" /> : <HeartIcon className="w-6 h-6" />}
           <span className={`font-semibold ${isLiked ? 'text-red-500' : ''}`}>Like</span>

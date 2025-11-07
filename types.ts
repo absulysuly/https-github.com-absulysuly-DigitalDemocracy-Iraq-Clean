@@ -34,6 +34,8 @@ export interface Candidate {
   name: string;
   party: string;
   avatarUrl: string;
-  supporters: number;
-  postCount: number;
+  supporters?: number;
+  postCount?: number;
+  governorate?: string;
+  gender?: 'Male' | 'Female' | 'Other';
 }
