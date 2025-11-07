@@ -1,47 +1,39 @@
 import React from 'react';
-import { User } from '../types';
-import { HomeIcon, SettingsIcon } from './IconComponents';
+import { Candidate, User } from '../types';
+import { HomeIcon, UsersIcon, IdentificationIcon, SettingsIcon } from './IconComponents';
+import CandidateCard from './CandidateCard';
 
 interface LeftSidebarProps {
   user: User;
+  candidates: Candidate[];
 }
 
-const NavLink: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  isActive?: boolean;
-}> = ({ icon, label, isActive }) => (
-  <a
-    href="#"
-    className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-      isActive
-        ? 'bg-white/10 text-white'
-        : 'text-gray-400 hover:bg-white/5 hover:text-white'
-    }`}
-  >
+const NavLink: React.FC<{ icon: React.ReactNode, label: string, isActive?: boolean }> = ({ icon, label, isActive }) => (
+  <a href="#" className={`flex items-center space-x-4 px-4 py-3 rounded-full transition-colors duration-200 ${isActive ? 'bg-teal-500/20 text-teal-300 font-bold' : 'hover:bg-slate-700/50 text-gray-300'}`}>
     {icon}
-    <span>{label}</span>
+    <span className="text-lg">{label}</span>
   </a>
 );
 
-const LeftSidebar: React.FC<LeftSidebarProps> = ({ user }) => {
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ user, candidates }) => {
   return (
-    <aside className="col-span-12 lg:col-span-2 hidden lg:block">
-      <div className="sticky top-4">
-        <h2 className="text-sm font-bold uppercase text-gray-400 tracking-wider px-4 mb-4">
-          Social Interaction
-        </h2>
+    <aside className="col-span-12 lg:col-span-3 hidden lg:block">
+      <div className="sticky top-20 space-y-6">
         <nav className="space-y-2">
-          <NavLink
-            icon={<HomeIcon className="w-6 h-6" />}
-            label="Home"
-            isActive={true}
-          />
-          <NavLink
-            icon={<SettingsIcon className="w-6 h-6" />}
-            label="Settings"
-          />
+          <NavLink icon={<HomeIcon className="w-7 h-7" />} label="Home" isActive />
+          <NavLink icon={<UsersIcon className="w-7 h-7" />} label="Community" />
+          <NavLink icon={<IdentificationIcon className="w-7 h-7" />} label="Candidates" />
+          <NavLink icon={<SettingsIcon className="w-7 h-7" />} label="Settings" />
         </nav>
+
+        <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
+          <h3 className="text-lg font-bold text-white mb-4">Top Candidates</h3>
+          <div className="space-y-2">
+            {candidates.map(candidate => (
+              <CandidateCard key={candidate.id} candidate={candidate} />
+            ))}
+          </div>
+        </div>
       </div>
     </aside>
   );
