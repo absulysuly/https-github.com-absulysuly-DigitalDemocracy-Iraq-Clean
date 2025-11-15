@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 
+export type ActiveSection = 'home' | 'women' | 'candidates' | 'minorities';
+
 export interface User {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ export interface Comment {
   author: User;
   text: string;
   timestamp: string;
+  isNew?: boolean;
 }
 
 export interface Source {
@@ -30,6 +33,7 @@ export interface Post {
   shares: number;
   sources?: Source[];
   postType?: 'standard' | 'story' | 'vote_declaration';
+  isNew?: boolean;
 }
 
 export interface Candidate {

@@ -11,20 +11,20 @@ interface TrendingTopicsProps {
 
 const TrendingTopics: React.FC<TrendingTopicsProps> = ({ topics }) => {
   return (
-    <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
+    <div className="glass-pane rounded-xl p-4">
       <div className="flex items-center space-x-2 mb-4">
-        <SparklesIcon className="w-5 h-5 text-teal-400" />
+        <SparklesIcon className="w-5 h-5 text-[var(--color-accent)]" />
         <h3 className="text-lg font-bold text-white">What's Happening</h3>
       </div>
       <div className="space-y-4">
         {topics.map((item, index) => (
           <div key={index} className="group cursor-pointer">
             <p className="text-xs text-gray-400">{item.category} · Trending</p>
-            <p className="font-bold text-white group-hover:text-teal-300 transition-colors">{item.topic}</p>
+            <p className="font-bold text-white group-hover:text-[var(--color-accent)] transition-colors">{item.topic}</p>
             <p className="text-xs text-gray-400">{item.postCount.toLocaleString()} posts</p>
           </div>
         ))}
-         <a href="#" className="text-sm text-teal-400 hover:underline pt-2 block">Show more</a>
+         <a href="#" className="text-sm text-[var(--color-accent)] hover:underline pt-2 block">Show more</a>
       </div>
     </div>
   );
@@ -67,9 +67,9 @@ const FollowCard: React.FC<{ user: { name: string; party: string; avatarUrl: str
 
 const RightSidebar: React.FC<RightSidebarProps> = ({ candidates, topics, electionDate }) => {
   return (
-    <aside className="col-span-12 xl:col-span-3 hidden xl:block">
+    <aside className="col-span-3 hidden xl:block">
       <div className="sticky top-20 space-y-6">
-        <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
+        <div className="glass-pane rounded-xl p-4">
           <h3 className="text-lg font-bold text-white mb-4">Who to follow</h3>
           <div className="space-y-4">
             {candidates.slice(0, 3).map(candidate => (
@@ -84,7 +84,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ candidates, topics, electio
         
         <CreatorSpotlight />
 
-        <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
+        <div className="glass-pane rounded-xl p-4">
           <h3 className="text-lg font-bold text-white mb-4">Platform Rules</h3>
           <ul className="space-y-2 text-sm text-gray-300 list-disc list-inside">
             <li>Be respectful to others.</li>

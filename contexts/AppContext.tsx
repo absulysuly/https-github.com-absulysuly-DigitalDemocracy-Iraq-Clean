@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { User, Post, Candidate, TrendingTopic, Project } from '../types';
+import { User, Post, Candidate, TrendingTopic, Project, ActiveSection } from '../types';
 import * as api from '../services/api';
 import { BrainCircuitIcon, LinkIcon, SparklesIcon } from '../components/IconComponents';
 
 export type Language = 'en' | 'ar' | 'ku';
+
+// Fix: Define ActiveTab type to be used for content tabs.
+export type ActiveTab = 'social' | 'election';
 
 interface AppContextState {
   // Auth
@@ -29,6 +32,13 @@ interface AppContextState {
   projects: Project[];
   currentProject: Project | null;
   setCurrentProject: (project: Project) => void;
+
+  // Navigation State
+  activeSection: ActiveSection;
+  setActiveSection: (section: ActiveSection) => void;
+  // Fix: Add activeTab and setActiveTab to the context state to fix property access errors.
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
 
   // Localization
   language: Language;
@@ -96,6 +106,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [projects] = useState<Project[]>(projectsData);
   const [currentProject, setCurrentProject] = useState<Project | null>(projectsData[0]);
 
+  // Navigation
+  const [activeSection, setActiveSection] = useState<ActiveSection>('home');
+  // Fix: Add state for activeTab.
+  const [activeTab, setActiveTab] = useState<ActiveTab>('social');
+
   // Language
   const [language, setLanguage] = useState<Language>('en');
 
@@ -161,6 +176,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         comments: [],
         shares: 0,
         author: user,
+        isNew: true,
     };
 
     setPosts(prevPosts => [newPost, ...prevPosts]);
@@ -183,6 +199,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     projects,
     currentProject,
     setCurrentProject,
+    activeSection,
+    setActiveSection,
+    // Fix: Provide activeTab and setActiveTab in the context value.
+    activeTab,
+    setActiveTab,
     language,
     setLanguage
   };

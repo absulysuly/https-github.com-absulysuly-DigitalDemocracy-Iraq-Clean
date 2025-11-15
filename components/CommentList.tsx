@@ -14,7 +14,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments }) => {
   return (
     <div className="space-y-4">
       {comments.map(comment => (
-        <div key={comment.id} className="flex items-start space-x-3">
+        <div key={comment.id} className={`flex items-start space-x-3 ${comment.isNew ? 'animate-fade-in-down' : ''}`}>
           <button onClick={() => alert(`Viewing profile for ${comment.author.name}. Full profile pages are coming soon!`)} className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 rounded-full">
             <img src={comment.author.avatarUrl} alt={comment.author.name} className="h-9 w-9 rounded-full" />
           </button>

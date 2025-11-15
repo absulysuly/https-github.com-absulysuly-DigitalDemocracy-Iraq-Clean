@@ -6,11 +6,113 @@
     <title>Digital Democracy Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      :root {
+        /* Default Theme: Home / Feed (Electric Teal + Soft Violet) */
+        --color-accent: #2dd4bf; /* teal-400 */
+        --color-accent-secondary: #a78bfa; /* violet-400 */
+        --color-accent-tertiary: #f472b6; /* pink-400 */
+        --color-accent-glow: rgba(45, 212, 191, 0.3);
+        --color-accent-contrast: #0f172a; /* slate-900 */
+        --color-bg-card-start: rgba(45, 212, 191, 0.05);
+        --color-bg-card-end: rgba(167, 139, 250, 0.05);
+      }
+      .theme-women {
+        /* Coral Rose + Light Gold */
+        --color-accent: #f43f5e; /* rose-500 */
+        --color-accent-secondary: #fcd34d; /* amber-300 */
+        --color-accent-tertiary: #fb923c; /* orange-400 */
+        --color-accent-glow: rgba(244, 63, 94, 0.3);
+        --color-accent-contrast: #ffffff;
+        --color-bg-card-start: rgba(244, 63, 94, 0.05);
+        --color-bg-card-end: rgba(252, 211, 77, 0.05);
+      }
+      .theme-candidates {
+        /* Royal Blue + Silver */
+        --color-accent: #3b82f6; /* blue-500 */
+        --color-accent-secondary: #d1d5db; /* gray-300 */
+        --color-accent-tertiary: #60a5fa; /* blue-400 */
+        --color-accent-glow: rgba(59, 130, 246, 0.3);
+        --color-accent-contrast: #ffffff;
+        --color-bg-card-start: rgba(59, 130, 246, 0.05);
+        --color-bg-card-end: rgba(209, 213, 219, 0.05);
+      }
+      .theme-minorities {
+        /* Emerald Green + Sand */
+        --color-accent: #10b981; /* emerald-500 */
+        --color-accent-secondary: #fde68a; /* amber-200 */
+        --color-accent-tertiary: #34d399; /* emerald-400 */
+        --color-accent-glow: rgba(16, 185, 129, 0.3);
+        --color-accent-contrast: #0f172a;
+        --color-bg-card-start: rgba(16, 185, 129, 0.05);
+        --color-bg-card-end: rgba(253, 230, 138, 0.05);
+      }
+      .theme-election {
+        /* Midnight Navy + Cyan */
+        --color-accent: #22d3ee; /* cyan-400 */
+        --color-accent-secondary: #0369a1; /* cyan-700 */
+        --color-accent-tertiary: #67e8f9; /* cyan-300 */
+        --color-accent-glow: rgba(34, 211, 238, 0.3);
+        --color-accent-contrast: #0f172a;
+        --color-bg-card-start: rgba(34, 211, 238, 0.05);
+        --color-bg-card-end: rgba(3, 105, 161, 0.05);
+      }
+
       body {
-        /* Replaced the darker gradient with a more vibrant one for a "brighter, more youthful" feel */
-        background-color: #1e293b; /* slate-800 fallback */
-        background-image: linear-gradient(to bottom right, #4f46e5, #1e293b, #14b8a6); /* indigo-600, slate-800, teal-500 */
+        background-color: #1e1b4b; /* deep violet fallback */
+        background-image: linear-gradient(to bottom right, #312e81, #0f172a, #14532d); /* violet->slate->emerald */
         min-height: 100vh;
+      }
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+          box-shadow: 0 0 10px 0px var(--color-accent-glow);
+        }
+        50% {
+          opacity: 0.9;
+          transform: scale(1.05);
+          box-shadow: 0 0 25px 5px var(--color-accent-glow);
+        }
+      }
+       @keyframes shimmer {
+        0% { background-position: -100% 0; }
+        100% { background-position: 100% 0; }
+      }
+      @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-1rem); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+      @keyframes like-pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4) rotate(-15deg); color: #f43f5e; } /* rose-500 */
+        100% { transform: scale(1); }
+      }
+      .animate-like-pop { animation: like-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+      .comments-container {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out;
+        margin-top: 0 !important;
+      }
+      .comments-container-open {
+        max-height: 1000px;
+        opacity: 1;
+        margin-top: 1rem !important;
+      }
+      .animate-pulse-custom { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+      .group-hover-shimmer:hover .shimmer-target {
+          background: linear-gradient(90deg, transparent, rgba(200, 255, 255, 0.1), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+      }
+      /* New Glassmorphism utility */
+      .glass-pane {
+        background-color: rgba(22, 28, 45, 0.4); /* Based on slate-900 */
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
     </style>
     <script type="importmap">
